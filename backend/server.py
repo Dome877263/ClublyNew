@@ -378,6 +378,11 @@ async def create_booking(booking: Booking, current_user = Depends(verify_jwt_tok
     if not event:
         raise HTTPException(status_code=404, detail="Evento non trovato")
     
+    # Find available promoter
+    promoter_id = assign_promoter_to_event(booking.event_id)
+    if not promoter_id:
+        raise HTTPException(status_code=503, detail="Nessun promoter disponibile al momento")
+    
     # Create booking
     booking_data = {
         "id": str(uuid.uuid4()),
@@ -386,10 +391,51 @@ async def create_booking(booking: Booking, current_user = Depends(verify_jwt_tok
         "booking_type": booking.booking_type,
         "party_size": booking.party_size,
         "status": "pending",
+        "promoter_id": promoter_id,
         "created_at": datetime.utcnow()
     }
     
     db.bookings.insert_one(booking_data)
+    
+    # Create chat for this booking
+    chat_data = {
+        "id": str(uuid.uuid4()),
+        "booking_id": booking_data["id"],
+        "client_id": current_user["id"],
+        "promoter_id": promoter_id,
+        "event_id": booking.event_id,
+        "status": "active",
+        "created_at": datetime.utcnow()
+    }
+    
+    db.chats.insert_one(chat_data)
+    
+    # Create automatic initial message
+    user = db.users.find_one({"id": current_user["id"]})
+    booking_type_text = "Lista/Prevendita" if booking.booking_type == "lista" else "Tavolo"
+    
+    initial_message = f"""🎉 Nuova prenotazione per {event['name']}
+
+👤 Cliente: {user['nome']} {user['cognome']} (@{user['username']})
+📅 Evento: {event['name']}
+📍 Luogo: {event['location']}
+⏰ Data: {event['date']} alle {event['start_time']}
+🎫 Tipo: {booking_type_text}
+👥 Persone: {booking.party_size}
+
+Ciao! Sono interessato/a a questa prenotazione. Puoi aiutarmi con i dettagli?"""
+    
+    initial_message_data = {
+        "id": str(uuid.uuid4()),
+        "chat_id": chat_data["id"],
+        "sender_id": current_user["id"],
+        "sender_role": "cliente",
+        "message": initial_message,
+        "timestamp": datetime.utcnow(),
+        "is_automatic": True
+    }
+    
+    db.chat_messages.insert_one(initial_message_data)
     
     # Update table availability if booking is for table
     if booking.booking_type == "tavolo" and event["tables_available"] > 0:
@@ -398,7 +444,11 @@ async def create_booking(booking: Booking, current_user = Depends(verify_jwt_tok
             {"$inc": {"tables_available": -1}}
         )
     
-    return {"message": "Prenotazione creata con successo", "booking_id": booking_data["id"]}
+    return {
+        "message": "Prenotazione creata con successo! Chat avviata con il promoter.",
+        "booking_id": booking_data["id"],
+        "chat_id": chat_data["id"]
+    }
 
 @app.get("/api/user/bookings")
 async def get_user_bookings(current_user = Depends(verify_jwt_token)):
