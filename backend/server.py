@@ -55,6 +55,7 @@ class Event(BaseModel):
     guests: List[str] = []
     total_tables: int = 0
     tables_available: int = 0
+    max_party_size: int = 10
     image: Optional[str] = None
 
 class Booking(BaseModel):
