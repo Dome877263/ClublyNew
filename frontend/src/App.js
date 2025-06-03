@@ -479,6 +479,140 @@ function App() {
     </div>
   );
 
+  const ChatModal = () => (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-red-600 rounded-lg w-full max-w-4xl h-[80vh] flex">
+        {/* Chat List Sidebar */}
+        <div className="w-1/3 border-r border-red-600 flex flex-col">
+          <div className="p-4 border-b border-red-600">
+            <div className="flex justify-between items-center">
+              <h2 className="text-white text-xl font-bold">Le Tue Chat</h2>
+              <button 
+                onClick={() => setShowChat(false)}
+                className="text-gray-400 hover:text-red-400 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto">
+            {chats.map(chat => (
+              <div 
+                key={chat.id} 
+                onClick={() => openChat(chat)}
+                className={`p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors ${
+                  selectedChat?.id === chat.id ? 'bg-red-600/20' : ''
+                }`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">
+                      {chat.other_participant?.nome?.charAt(0) || '?'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-white font-semibold">
+                      {chat.other_participant?.nome} {chat.other_participant?.cognome}
+                    </h3>
+                    <p className="text-gray-400 text-sm">{chat.event?.name}</p>
+                    {chat.last_message && (
+                      <p className="text-gray-500 text-xs truncate">
+                        {chat.last_message.message.substring(0, 50)}...
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            {chats.length === 0 && (
+              <div className="p-4 text-center text-gray-400">
+                Nessuna chat disponibile
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Chat Messages Area */}
+        <div className="flex-1 flex flex-col">
+          {selectedChat ? (
+            <>
+              {/* Chat Header */}
+              <div className="p-4 border-b border-red-600 bg-gray-800">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold">
+                      {selectedChat.other_participant?.nome?.charAt(0) || '?'}
+                    </span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold">
+                      {selectedChat.other_participant?.nome} {selectedChat.other_participant?.cognome}
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      {selectedChat.participant_role === 'promoter' ? 'Promoter' : 'Cliente'} • {selectedChat.event?.name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {chatMessages.map(message => (
+                  <div 
+                    key={message.id} 
+                    className={`flex ${message.sender_id === currentUser.id ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div 
+                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                        message.sender_id === currentUser.id 
+                          ? 'bg-red-600 text-white' 
+                          : 'bg-gray-700 text-white'
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap">{message.message}</p>
+                      <p className="text-xs opacity-75 mt-1">
+                        {new Date(message.timestamp).toLocaleTimeString('it-IT', {
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Message Input */}
+              <div className="p-4 border-t border-red-600">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+                    placeholder="Scrivi un messaggio..."
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                  />
+                  <button 
+                    onClick={sendMessage}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors"
+                  >
+                    Invia
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <p className="text-gray-400">Seleziona una chat per iniziare</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Header */}
