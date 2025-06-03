@@ -121,14 +121,73 @@ function App() {
       });
       
       if (response.ok) {
-        alert('Prenotazione inviata! Un promoter ti contatterà presto.');
+        const result = await response.json();
+        alert('Prenotazione inviata! Chat con promoter avviata.');
         setShowBooking(false);
         setSelectedEvent(null);
         fetchEvents(); // Refresh to update availability
+        fetchChats(); // Fetch new chat
+        setShowChat(true); // Open chat interface
       }
     } catch (error) {
       alert('Errore durante la prenotazione');
     }
+  };
+
+  const fetchChats = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch(`${backendUrl}/api/user/chats`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChats(data);
+      }
+    } catch (error) {
+      console.error('Errore nel caricamento chat:', error);
+    }
+  };
+
+  const fetchChatMessages = async (chatId) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/chats/${chatId}/messages`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages(data);
+      }
+    } catch (error) {
+      console.error('Errore nel caricamento messaggi:', error);
+    }
+  };
+
+  const sendMessage = async () => {
+    if (!newMessage.trim() || !selectedChat) return;
+    
+    try {
+      const response = await fetch(`${backendUrl}/api/chats/${selectedChat.id}/messages`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ message: newMessage })
+      });
+      
+      if (response.ok) {
+        setNewMessage('');
+        fetchChatMessages(selectedChat.id); // Refresh messages
+      }
+    } catch (error) {
+      alert('Errore nell\'invio del messaggio');
+    }
+  };
+
+  const openChat = (chat) => {
+    setSelectedChat(chat);
+    fetchChatMessages(chat.id);
   };
 
   const EventCard = ({ event }) => (
