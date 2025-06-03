@@ -63,6 +63,20 @@ class Booking(BaseModel):
     booking_type: str  # "lista" or "tavolo"
     party_size: int
 
+class ChatMessage(BaseModel):
+    chat_id: str
+    sender_id: str
+    sender_role: str
+    message: str
+    timestamp: Optional[str] = None
+
+class Chat(BaseModel):
+    booking_id: str
+    client_id: str
+    promoter_id: str
+    event_id: str
+    status: str = "active"  # active, closed
+
 # Helper functions
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
