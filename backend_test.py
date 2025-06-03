@@ -61,6 +61,26 @@ class ClublyAPITester(unittest.TestCase):
                 self.test_event_id = events[0]['id']
                 print(f"✅ Events list endpoint returned {len(events)} events")
                 print(f"   First event: {events[0]['name']}")
+                
+                # Check max_party_size for specific events
+                neon_nights = next((e for e in events if "NEON NIGHTS" in e['name']), None)
+                red_passion = next((e for e in events if "RED PASSION" in e['name']), None)
+                techno_underground = next((e for e in events if "TECHNO UNDERGROUND" in e['name']), None)
+                
+                if neon_nights:
+                    self.assertEqual(neon_nights['max_party_size'], 8, 
+                                    f"NEON NIGHTS should have max_party_size=8, got {neon_nights['max_party_size']}")
+                    print(f"✅ NEON NIGHTS has correct max_party_size: {neon_nights['max_party_size']}")
+                
+                if red_passion:
+                    self.assertEqual(red_passion['max_party_size'], 6, 
+                                    f"RED PASSION should have max_party_size=6, got {red_passion['max_party_size']}")
+                    print(f"✅ RED PASSION has correct max_party_size: {red_passion['max_party_size']}")
+                
+                if techno_underground:
+                    self.assertEqual(techno_underground['max_party_size'], 12, 
+                                    f"TECHNO UNDERGROUND should have max_party_size=12, got {techno_underground['max_party_size']}")
+                    print(f"✅ TECHNO UNDERGROUND has correct max_party_size: {techno_underground['max_party_size']}")
             else:
                 print("⚠️ Events list endpoint returned 0 events")
         except Exception as e:
