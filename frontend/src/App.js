@@ -697,6 +697,7 @@ function App() {
       {showEventDetails && selectedEvent && <EventDetailsModal />}
       {showAuth && <AuthModal />}
       {showBooking && selectedEvent && <BookingModal />}
+      {showChat && <ChatModal />}
     </div>
   );
 }
