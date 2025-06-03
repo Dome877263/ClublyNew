@@ -119,6 +119,55 @@ def initialize_default_data():
         db.users.insert_one(admin_user)
         print("Default admin user created")
 
+    # Create sample promoters if none exist
+    if not db.users.find_one({"ruolo": "promoter"}):
+        sample_promoters = [
+            {
+                "id": str(uuid.uuid4()),
+                "nome": "Marco",
+                "cognome": "Rossi",
+                "email": "marco.promoter@clubly.it",
+                "username": "marco_promoter",
+                "password": hash_password("Password1@"),
+                "ruolo": "promoter",
+                "data_nascita": "1995-03-15",
+                "citta": "Milano",
+                "organization": "Night Events Milano",
+                "status": "available",
+                "created_at": datetime.utcnow()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "nome": "Sara",
+                "cognome": "Bianchi",
+                "email": "sara.promoter@clubly.it",
+                "username": "sara_promoter",
+                "password": hash_password("Password1@"),
+                "ruolo": "promoter",
+                "data_nascita": "1993-07-22",
+                "citta": "Roma",
+                "organization": "Urban Nights",
+                "status": "available",
+                "created_at": datetime.utcnow()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "nome": "Alex",
+                "cognome": "Verdi",
+                "email": "alex.promoter@clubly.it",
+                "username": "alex_promoter",
+                "password": hash_password("Password1@"),
+                "ruolo": "promoter",
+                "data_nascita": "1992-11-08",
+                "citta": "Torino",
+                "organization": "Electronic Sessions",
+                "status": "available",
+                "created_at": datetime.utcnow()
+            }
+        ]
+        db.users.insert_many(sample_promoters)
+        print("Sample promoters created")
+
     # Create sample events if none exist
     if db.events.count_documents({}) == 0:
         sample_events = [
