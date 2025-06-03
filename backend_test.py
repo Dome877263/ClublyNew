@@ -78,7 +78,13 @@ class ClublyAPITester(unittest.TestCase):
             self.assertEqual(response.status_code, 200)
             event = response.json()
             self.assertEqual(event['id'], self.test_event_id)
+            
+            # Check if max_party_size field exists
+            self.assertIn('max_party_size', event, "max_party_size field is missing in event data")
+            self.assertIsInstance(event['max_party_size'], int, "max_party_size should be an integer")
+            
             print(f"✅ Event details endpoint returned data for '{event['name']}'")
+            print(f"   Event max_party_size: {event['max_party_size']}")
         except Exception as e:
             print(f"❌ Event details endpoint test failed: {str(e)}")
             self.fail(f"Event details endpoint test failed: {str(e)}")
