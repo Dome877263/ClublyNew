@@ -100,6 +100,28 @@ def verify_jwt_token(credentials: HTTPAuthorizationCredentials = Depends(securit
     except jwt.JWTError:
         raise HTTPException(status_code=401, detail="Token non valido")
 
+def assign_promoter_to_event(event_id: str) -> str:
+    """Trova un promoter disponibile per l'evento"""
+    event = db.events.find_one({"id": event_id})
+    if not event:
+        return None
+    
+    # Trova un promoter della stessa organizzazione se possibile
+    promoter = db.users.find_one({
+        "ruolo": "promoter",
+        "organization": event.get("organization"),
+        "status": "available"
+    })
+    
+    # Se non trova nessuno nella stessa organizzazione, prende qualsiasi promoter
+    if not promoter:
+        promoter = db.users.find_one({
+            "ruolo": "promoter",
+            "status": "available"
+        })
+    
+    return promoter["id"] if promoter else None
+
 # Initialize default data
 def initialize_default_data():
     # Create default admin user if not exists
