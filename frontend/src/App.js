@@ -11,6 +11,11 @@ function App() {
   const [showBooking, setShowBooking] = useState(false);
   const [bookingType, setBookingType] = useState('');
   const [partySize, setPartySize] = useState(1);
+  const [showChat, setShowChat] = useState(false);
+  const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [chatMessages, setChatMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
