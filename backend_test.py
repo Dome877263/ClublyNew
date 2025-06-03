@@ -14,6 +14,7 @@ class ClublyAPITester(unittest.TestCase):
         self.user_id = None
         self.test_event_id = None
         self.test_booking_id = None
+        self.test_chat_id = None
         
         # Test user data
         self.test_user = {
@@ -209,7 +210,13 @@ class ClublyAPITester(unittest.TestCase):
             data = response.json()
             self.assertIn('booking_id', data)
             self.test_booking_id = data['booking_id']
+            self.test_chat_id = data.get('chat_id')
+            
+            # Verify that a chat_id is returned
+            self.assertIsNotNone(self.test_chat_id, "No chat_id returned from booking creation")
+            
             print(f"✅ Booking created successfully with ID: {self.test_booking_id}")
+            print(f"✅ Chat created automatically with ID: {self.test_chat_id}")
         except Exception as e:
             print(f"❌ Booking creation test failed: {str(e)}")
             self.fail(f"Booking creation test failed: {str(e)}")
@@ -237,6 +244,125 @@ class ClublyAPITester(unittest.TestCase):
             print(f"❌ User bookings endpoint test failed: {str(e)}")
             self.fail(f"User bookings endpoint test failed: {str(e)}")
 
+    def test_10_get_user_chats(self):
+        """Test getting user chats"""
+        if not self.token:
+            self.skipTest("No token available from previous test")
+            
+        print("\n🔍 Testing user chats endpoint...")
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/user/chats",
+                headers={"Authorization": f"Bearer {self.token}"}
+            )
+            self.assertEqual(response.status_code, 200)
+            chats = response.json()
+            self.assertIsInstance(chats, list)
+            
+            if len(chats) > 0:
+                print(f"✅ User chats endpoint returned {len(chats)} chats")
+                
+                # Verify chat structure
+                chat = chats[0]
+                self.assertIn('id', chat, "Chat is missing 'id' field")
+                self.assertIn('event', chat, "Chat is missing 'event' field")
+                self.assertIn('other_participant', chat, "Chat is missing 'other_participant' field")
+                self.assertIn('last_message', chat, "Chat is missing 'last_message' field")
+                
+                # Verify promoter assignment
+                self.assertIn('nome', chat['other_participant'], "Promoter is missing 'nome' field")
+                print(f"✅ Chat assigned to promoter: {chat['other_participant']['nome']} {chat['other_participant']['cognome']}")
+                
+                # Save chat ID if not already set
+                if not self.test_chat_id:
+                    self.test_chat_id = chat['id']
+            else:
+                print("⚠️ User chats endpoint returned 0 chats")
+        except Exception as e:
+            print(f"❌ User chats endpoint test failed: {str(e)}")
+            self.fail(f"User chats endpoint test failed: {str(e)}")
+
+    def test_11_get_chat_messages(self):
+        """Test getting chat messages"""
+        if not self.token or not self.test_chat_id:
+            self.skipTest("No token or chat ID available from previous tests")
+            
+        print(f"\n🔍 Testing chat messages endpoint for chat ID: {self.test_chat_id}...")
+        try:
+            response = requests.get(
+                f"{self.base_url}/api/chats/{self.test_chat_id}/messages",
+                headers={"Authorization": f"Bearer {self.token}"}
+            )
+            self.assertEqual(response.status_code, 200)
+            messages = response.json()
+            self.assertIsInstance(messages, list)
+            
+            if len(messages) > 0:
+                print(f"✅ Chat messages endpoint returned {len(messages)} messages")
+                
+                # Verify automatic message
+                first_message = messages[0]
+                self.assertIn('is_automatic', first_message, "Message is missing 'is_automatic' field")
+                self.assertTrue(first_message.get('is_automatic', False), "First message should be automatic")
+                
+                # Verify message content
+                self.assertIn('message', first_message, "Message is missing 'message' field")
+                message_content = first_message['message']
+                self.assertIn('Nuova prenotazione', message_content, "Automatic message should contain 'Nuova prenotazione'")
+                self.assertIn('Cliente:', message_content, "Automatic message should contain client info")
+                self.assertIn('Evento:', message_content, "Automatic message should contain event info")
+                self.assertIn('Tipo:', message_content, "Automatic message should contain booking type")
+                self.assertIn('Persone:', message_content, "Automatic message should contain party size")
+                
+                print("✅ Automatic message contains all required information")
+                print(f"✅ Message preview: {message_content[:100]}...")
+            else:
+                print("⚠️ Chat messages endpoint returned 0 messages")
+        except Exception as e:
+            print(f"❌ Chat messages endpoint test failed: {str(e)}")
+            self.fail(f"Chat messages endpoint test failed: {str(e)}")
+
+    def test_12_send_chat_message(self):
+        """Test sending a chat message"""
+        if not self.token or not self.test_chat_id:
+            self.skipTest("No token or chat ID available from previous tests")
+            
+        print(f"\n🔍 Testing sending a chat message to chat ID: {self.test_chat_id}...")
+        try:
+            message_data = {
+                "chat_id": self.test_chat_id,
+                "sender_id": self.user_id,
+                "sender_role": "cliente",
+                "message": "Questo è un messaggio di test inviato dall'API test."
+            }
+            
+            response = requests.post(
+                f"{self.base_url}/api/chats/{self.test_chat_id}/messages",
+                json=message_data,
+                headers={"Authorization": f"Bearer {self.token}"}
+            )
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertIn('message_id', data)
+            print(f"✅ Message sent successfully with ID: {data['message_id']}")
+            
+            # Verify message was added to chat
+            response = requests.get(
+                f"{self.base_url}/api/chats/{self.test_chat_id}/messages",
+                headers={"Authorization": f"Bearer {self.token}"}
+            )
+            self.assertEqual(response.status_code, 200)
+            messages = response.json()
+            
+            # The last message should be our test message
+            last_message = messages[-1]
+            self.assertEqual(last_message['message'], message_data['message'])
+            self.assertEqual(last_message['sender_id'], self.user_id)
+            print("✅ Message successfully added to chat")
+        except Exception as e:
+            print(f"❌ Sending chat message test failed: {str(e)}")
+            self.fail(f"Sending chat message test failed: {str(e)}")
+
 if __name__ == "__main__":
     # Create a test suite
     suite = unittest.TestSuite()
@@ -251,6 +377,9 @@ if __name__ == "__main__":
     suite.addTest(ClublyAPITester('test_07_get_user_profile'))
     suite.addTest(ClublyAPITester('test_08_create_booking'))
     suite.addTest(ClublyAPITester('test_09_get_user_bookings'))
+    suite.addTest(ClublyAPITester('test_10_get_user_chats'))
+    suite.addTest(ClublyAPITester('test_11_get_chat_messages'))
+    suite.addTest(ClublyAPITester('test_12_send_chat_message'))
     
     # Run the tests
     runner = unittest.TextTestRunner(verbosity=2)
