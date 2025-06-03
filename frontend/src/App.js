@@ -390,8 +390,10 @@ function App() {
                 onChange={(e) => setPartySize(parseInt(e.target.value))}
                 className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
               >
-                {[...Array(20)].map((_, i) => (
-                  <option key={i+1} value={i+1}>{i+1} persona{i > 0 ? 'e' : 'a'}</option>
+                {[...Array(selectedEvent?.max_party_size || 10)].map((_, i) => (
+                  <option key={i+1} value={i+1}>
+                    {i+1} {i === 0 ? 'persona' : 'persone'}
+                  </option>
                 ))}
               </select>
             </div>
