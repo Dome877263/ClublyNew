@@ -119,6 +119,7 @@ def initialize_default_data():
                 "guests": ["Special Guest TBA"],
                 "total_tables": 20,
                 "tables_available": 15,
+                "max_party_size": 8,
                 "image": "https://images.pexels.com/photos/11748607/pexels-photo-11748607.jpeg",
                 "created_at": datetime.utcnow()
             },
@@ -133,6 +134,7 @@ def initialize_default_data():
                 "guests": ["Rapper Boss"],
                 "total_tables": 15,
                 "tables_available": 8,
+                "max_party_size": 6,
                 "image": "https://images.pexels.com/photos/15747701/pexels-photo-15747701.jpeg",
                 "created_at": datetime.utcnow()
             },
@@ -147,6 +149,7 @@ def initialize_default_data():
                 "guests": [],
                 "total_tables": 10,
                 "tables_available": 10,
+                "max_party_size": 12,
                 "image": "https://images.unsplash.com/photo-1699871318112-188325a4a2c3?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwyfHxjbHVifGVufDB8fHxyZWR8MTc0ODk1ODc2M3ww&ixlib=rb-4.1.0&q=85",
                 "created_at": datetime.utcnow()
             }
