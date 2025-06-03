@@ -1,52 +1,485 @@
-import { useEffect } from "react";
-import "./App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import './App.css';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+function App() {
+  const [events, setEvents] = useState([]);
+  const [showEventDetails, setShowEventDetails] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [showBooking, setShowBooking] = useState(false);
+  const [bookingType, setBookingType] = useState('');
+  const [partySize, setPartySize] = useState(1);
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+  const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
+
+  useEffect(() => {
+    fetchEvents();
+    checkAuthStatus();
+  }, []);
+
+  const checkAuthStatus = async () => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const response = await fetch(`${backendUrl}/api/user/profile`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const user = await response.json();
+          setCurrentUser(user);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+      }
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
+  const fetchEvents = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/events`);
+      const data = await response.json();
+      setEvents(data);
+    } catch (error) {
+      console.error('Errore nel caricamento eventi:', error);
+    }
+  };
 
-  return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
+  const handleLogin = async (email, password) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        setCurrentUser(data.user);
+        setShowAuth(false);
+        setShowBooking(true);
+      } else {
+        alert('Credenziali non valide');
+      }
+    } catch (error) {
+      alert('Errore durante il login');
+    }
+  };
+
+  const handleRegister = async (userData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('token', data.token);
+        setCurrentUser(data.user);
+        setShowAuth(false);
+        setShowBooking(true);
+      } else {
+        const error = await response.json();
+        alert(error.message || 'Errore durante la registrazione');
+      }
+    } catch (error) {
+      alert('Errore durante la registrazione');
+    }
+  };
+
+  const handleBookNow = (event) => {
+    setSelectedEvent(event);
+    if (!currentUser) {
+      setShowAuth(true);
+    } else {
+      setShowBooking(true);
+    }
+  };
+
+  const handleBookingSubmit = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/bookings`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          event_id: selectedEvent.id,
+          booking_type: bookingType,
+          party_size: partySize
+        })
+      });
+      
+      if (response.ok) {
+        alert('Prenotazione inviata! Un promoter ti contatterà presto.');
+        setShowBooking(false);
+        setSelectedEvent(null);
+        fetchEvents(); // Refresh to update availability
+      }
+    } catch (error) {
+      alert('Errore durante la prenotazione');
+    }
+  };
+
+  const EventCard = ({ event }) => (
+    <div className="bg-gray-900 border border-red-600 rounded-lg overflow-hidden shadow-lg hover:shadow-red-500/20 transition-all duration-300 transform hover:scale-105">
+      <div className="h-48 bg-gradient-to-br from-red-600 to-black relative overflow-hidden">
+        <img 
+          src={event.image || 'https://images.pexels.com/photos/11748607/pexels-photo-11748607.jpeg'} 
+          alt={event.name}
+          className="w-full h-full object-cover opacity-80"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+        <div className="absolute bottom-4 left-4 text-white">
+          <div className="bg-red-600 px-2 py-1 text-xs rounded font-bold">
+            {new Date(event.date).toLocaleDateString('it-IT')}
+          </div>
+        </div>
+      </div>
+      <div className="p-4">
+        <h3 className="text-white font-bold text-lg mb-2">{event.name}</h3>
+        <p className="text-gray-300 text-sm mb-2">📍 {event.location}</p>
+        <div className="flex space-x-2">
+          <button 
+            onClick={() => handleBookNow(event)}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold text-sm flex-1 transition-colors"
+          >
+            Prenota Ora
+          </button>
+          <button 
+            onClick={() => { setSelectedEvent(event); setShowEventDetails(true); }}
+            className="border border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-4 py-2 rounded font-bold text-sm transition-colors"
+          >
+            Scopri di Più
+          </button>
+        </div>
+      </div>
     </div>
   );
-};
 
-function App() {
+  const EventDetailsModal = () => (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-red-600 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="relative h-64">
+          <img 
+            src={selectedEvent?.image || 'https://images.pexels.com/photos/11748607/pexels-photo-11748607.jpeg'} 
+            alt={selectedEvent?.name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+          <button 
+            onClick={() => setShowEventDetails(false)}
+            className="absolute top-4 right-4 text-white bg-black/50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="p-6">
+          <h2 className="text-white text-2xl font-bold mb-4">{selectedEvent?.name}</h2>
+          <div className="space-y-3 text-gray-300">
+            <p><span className="text-red-400">📅 Data:</span> {new Date(selectedEvent?.date).toLocaleDateString('it-IT', { 
+              weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            })}</p>
+            <p><span className="text-red-400">🕘 Orario:</span> {selectedEvent?.start_time}</p>
+            <p><span className="text-red-400">📍 Luogo:</span> {selectedEvent?.location}</p>
+            <p><span className="text-red-400">🏢 Organizzazione:</span> {selectedEvent?.organization}</p>
+            {selectedEvent?.lineup && (
+              <p><span className="text-red-400">🎵 Line-up:</span> {selectedEvent.lineup.join(', ')}</p>
+            )}
+            {selectedEvent?.guests && (
+              <p><span className="text-red-400">⭐ Guest:</span> {selectedEvent.guests.join(', ')}</p>
+            )}
+          </div>
+          
+          {selectedEvent?.tables_available > 0 && (
+            <div className="mt-6">
+              <h3 className="text-white font-bold mb-2">Disponibilità Tavoli</h3>
+              <div className="bg-gray-800 rounded-lg p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-gray-300">Tavoli disponibili</span>
+                  <span className="text-red-400 font-bold">{selectedEvent.tables_available}/{selectedEvent.total_tables}</span>
+                </div>
+                <div className="w-full bg-gray-700 rounded-full h-3">
+                  <div 
+                    className="bg-gradient-to-r from-red-600 to-red-400 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${(selectedEvent.tables_available / selectedEvent.total_tables) * 100}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <button 
+            onClick={() => handleBookNow(selectedEvent)}
+            className="w-full bg-red-600 hover:bg-red-700 text-white py-3 rounded-lg font-bold text-lg mt-6 transition-colors"
+          >
+            Prenota Ora
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const AuthModal = () => {
+    const [formData, setFormData] = useState({
+      email: '', password: '', nome: '', cognome: '', username: '', 
+      data_nascita: '', citta: ''
+    });
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      if (authMode === 'login') {
+        handleLogin(formData.email, formData.password);
+      } else {
+        handleRegister(formData);
+      }
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-900 border border-red-600 rounded-lg max-w-md w-full">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-white text-xl font-bold">
+                {authMode === 'login' ? 'Accedi' : 'Registrati'}
+              </h2>
+              <button 
+                onClick={() => setShowAuth(false)}
+                className="text-gray-400 hover:text-red-400 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                required
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={(e) => setFormData({...formData, password: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                required
+              />
+              
+              {authMode === 'register' && (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      placeholder="Nome"
+                      value={formData.nome}
+                      onChange={(e) => setFormData({...formData, nome: e.target.value})}
+                      className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                      required
+                    />
+                    <input
+                      type="text"
+                      placeholder="Cognome"
+                      value={formData.cognome}
+                      onChange={(e) => setFormData({...formData, cognome: e.target.value})}
+                      className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                      required
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={formData.username}
+                    onChange={(e) => setFormData({...formData, username: e.target.value})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                    required
+                  />
+                  <input
+                    type="date"
+                    value={formData.data_nascita}
+                    onChange={(e) => setFormData({...formData, data_nascita: e.target.value})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                    required
+                  />
+                  <input
+                    type="text"
+                    placeholder="Città"
+                    value={formData.citta}
+                    onChange={(e) => setFormData({...formData, citta: e.target.value})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                    required
+                  />
+                </>
+              )}
+              
+              <button 
+                type="submit" 
+                className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded font-bold transition-colors"
+              >
+                {authMode === 'login' ? 'Accedi' : 'Registrati'}
+              </button>
+            </form>
+            
+            <div className="mt-4 text-center">
+              <button 
+                onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                className="text-red-400 hover:text-red-300 text-sm"
+              >
+                {authMode === 'login' ? 'Non hai un account? Registrati' : 'Hai già un account? Accedi'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const BookingModal = () => (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-red-600 rounded-lg max-w-md w-full">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-xl font-bold">Prenota per {selectedEvent?.name}</h2>
+            <button 
+              onClick={() => setShowBooking(false)}
+              className="text-gray-400 hover:text-red-400 text-xl"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="text-white font-bold block mb-2">Tipo di Prenotazione</label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2">
+                  <input 
+                    type="radio" 
+                    name="bookingType" 
+                    value="lista"
+                    onChange={(e) => setBookingType(e.target.value)}
+                    className="text-red-600" 
+                  />
+                  <span className="text-gray-300">Lista / Prevendita</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input 
+                    type="radio" 
+                    name="bookingType" 
+                    value="tavolo"
+                    onChange={(e) => setBookingType(e.target.value)}
+                    className="text-red-600" 
+                  />
+                  <span className="text-gray-300">Tavolo</span>
+                </label>
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-white font-bold block mb-2">Numero di Persone</label>
+              <select 
+                value={partySize}
+                onChange={(e) => setPartySize(parseInt(e.target.value))}
+                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+              >
+                {[...Array(20)].map((_, i) => (
+                  <option key={i+1} value={i+1}>{i+1} persona{i > 0 ? 'e' : 'a'}</option>
+                ))}
+              </select>
+            </div>
+            
+            <button 
+              onClick={handleBookingSubmit}
+              disabled={!bookingType}
+              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white py-3 rounded font-bold transition-colors"
+            >
+              Conferma Prenotazione
+            </button>
+            
+            <p className="text-gray-400 text-sm text-center">
+              Un promoter ti contatterà presto per finalizzare la prenotazione
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <header className="bg-gray-900 border-b border-red-600">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-red-500">CLUBLY</h1>
+            {currentUser ? (
+              <div className="flex items-center space-x-4">
+                <span className="text-gray-300">Ciao, {currentUser.nome}!</span>
+                <button 
+                  onClick={() => { localStorage.removeItem('token'); setCurrentUser(null); }}
+                  className="text-red-400 hover:text-red-300"
+                >
+                  Esci
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => setShowAuth(true)}
+                className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-bold transition-colors"
+              >
+                Accedi
+              </button>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-red-600 via-red-800 to-black py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-4xl md:text-6xl font-bold mb-4">
+            La Notte è <span className="text-red-400">NOSTRA</span>
+          </h2>
+          <p className="text-xl md:text-2xl text-gray-200 mb-8">
+            Prenota i migliori eventi e tavoli nelle discoteche più esclusive
+          </p>
+        </div>
+      </section>
+
+      {/* Events Section */}
+      <section className="py-16">
+        <div className="container mx-auto px-4">
+          <h2 className="text-3xl font-bold text-center mb-12">
+            Eventi <span className="text-red-500">in Programma</span>
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {events.map(event => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+          
+          {events.length === 0 && (
+            <div className="text-center text-gray-400 py-16">
+              <p className="text-xl">Nessun evento disponibile al momento</p>
+              <p>Torna presto per scoprire i prossimi eventi!</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Modals */}
+      {showEventDetails && selectedEvent && <EventDetailsModal />}
+      {showAuth && <AuthModal />}
+      {showBooking && selectedEvent && <BookingModal />}
     </div>
   );
 }
