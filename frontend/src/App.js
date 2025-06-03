@@ -628,9 +628,20 @@ function App() {
             <h1 className="text-2xl font-bold text-red-500">CLUBLY</h1>
             {currentUser ? (
               <div className="flex items-center space-x-4">
+                <button 
+                  onClick={() => setShowChat(true)}
+                  className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded font-bold transition-colors relative"
+                >
+                  💬 Chat
+                  {chats.length > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {chats.length}
+                    </span>
+                  )}
+                </button>
                 <span className="text-gray-300">Ciao, {currentUser.nome}!</span>
                 <button 
-                  onClick={() => { localStorage.removeItem('token'); setCurrentUser(null); }}
+                  onClick={() => { localStorage.removeItem('token'); setCurrentUser(null); setChats([]); }}
                   className="text-red-400 hover:text-red-300"
                 >
                   Esci
