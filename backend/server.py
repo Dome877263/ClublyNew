@@ -467,6 +467,114 @@ async def get_organizations():
     organizations = list(db.organizations.find({}, {"_id": 0}))
     return organizations
 
+# Chat endpoints
+@app.get("/api/user/chats")
+async def get_user_chats(current_user = Depends(verify_jwt_token)):
+    """Get all chats for the current user"""
+    chats = list(db.chats.find({
+        "$or": [
+            {"client_id": current_user["id"]},
+            {"promoter_id": current_user["id"]}
+        ]
+    }, {"_id": 0}).sort("created_at", -1))
+    
+    # Populate chat details
+    for chat in chats:
+        # Get event details
+        event = db.events.find_one({"id": chat["event_id"]}, {"_id": 0})
+        chat["event"] = event
+        
+        # Get other participant details
+        if chat["client_id"] == current_user["id"]:
+            # Current user is client, get promoter details
+            promoter = db.users.find_one({"id": chat["promoter_id"]}, {"_id": 0, "password": 0})
+            chat["other_participant"] = promoter
+            chat["participant_role"] = "promoter"
+        else:
+            # Current user is promoter, get client details
+            client = db.users.find_one({"id": chat["client_id"]}, {"_id": 0, "password": 0})
+            chat["other_participant"] = client
+            chat["participant_role"] = "cliente"
+        
+        # Get last message
+        last_message = db.chat_messages.find_one(
+            {"chat_id": chat["id"]}, 
+            {"_id": 0}, 
+            sort=[("timestamp", -1)]
+        )
+        chat["last_message"] = last_message
+    
+    return chats
+
+@app.get("/api/chats/{chat_id}/messages")
+async def get_chat_messages(chat_id: str, current_user = Depends(verify_jwt_token)):
+    """Get all messages for a specific chat"""
+    # Verify user has access to this chat
+    chat = db.chats.find_one({
+        "id": chat_id,
+        "$or": [
+            {"client_id": current_user["id"]},
+            {"promoter_id": current_user["id"]}
+        ]
+    })
+    
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat non trovata")
+    
+    messages = list(db.chat_messages.find(
+        {"chat_id": chat_id}, 
+        {"_id": 0}
+    ).sort("timestamp", 1))
+    
+    return messages
+
+@app.post("/api/chats/{chat_id}/messages")
+async def send_message(chat_id: str, message: ChatMessage, current_user = Depends(verify_jwt_token)):
+    """Send a message to a specific chat"""
+    # Verify user has access to this chat
+    chat = db.chats.find_one({
+        "id": chat_id,
+        "$or": [
+            {"client_id": current_user["id"]},
+            {"promoter_id": current_user["id"]}
+        ]
+    })
+    
+    if not chat:
+        raise HTTPException(status_code=404, detail="Chat non trovata")
+    
+    # Create message
+    message_data = {
+        "id": str(uuid.uuid4()),
+        "chat_id": chat_id,
+        "sender_id": current_user["id"],
+        "sender_role": current_user["ruolo"],
+        "message": message.message,
+        "timestamp": datetime.utcnow(),
+        "is_automatic": False
+    }
+    
+    db.chat_messages.insert_one(message_data)
+    
+    return {"message": "Messaggio inviato con successo", "message_id": message_data["id"]}
+
+@app.put("/api/bookings/{booking_id}/status")
+async def update_booking_status(booking_id: str, status: str, current_user = Depends(verify_jwt_token)):
+    """Update booking status (confirm/cancel) - only promoters can do this"""
+    if current_user["ruolo"] not in ["promoter", "capo_promoter", "clubly_founder"]:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Update booking status
+    result = db.bookings.update_one(
+        {"id": booking_id},
+        {"$set": {"status": status, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Prenotazione non trovata")
+    
+    return {"message": f"Prenotazione {status} con successo"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
