@@ -24,6 +24,12 @@ function App() {
     checkAuthStatus();
   }, []);
 
+  useEffect(() => {
+    if (currentUser) {
+      fetchChats();
+    }
+  }, [currentUser]);
+
   const checkAuthStatus = async () => {
     const token = localStorage.getItem('token');
     if (token) {
