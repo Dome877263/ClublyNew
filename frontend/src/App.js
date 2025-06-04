@@ -292,6 +292,227 @@ function App() {
     fetchChatMessages(chat.id);
   };
 
+  // Dashboard Components
+  const PromoterDashboard = () => {
+    if (!dashboardData) return <div className="text-center py-8">Caricamento dashboard...</div>;
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-white mb-2">Dashboard Promoter</h2>
+          <p className="text-gray-400">Organizzazione: <span className="text-red-400 font-bold">{dashboardData.organization}</span></p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Eventi della tua organizzazione */}
+          <div className="bg-gray-900 border border-red-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">📅 Eventi Organizzazione</h3>
+            <div className="space-y-4">
+              {dashboardData.events?.length > 0 ? (
+                dashboardData.events.map(event => (
+                  <div key={event.id} className="bg-gray-800 rounded-lg p-4">
+                    <h4 className="text-white font-bold">{event.name}</h4>
+                    <p className="text-gray-300 text-sm">📍 {event.location}</p>
+                    <p className="text-gray-300 text-sm">📅 {event.date} alle {event.start_time}</p>
+                    <p className="text-gray-300 text-sm">🎵 {event.lineup?.join(', ')}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400">Nessun evento trovato</p>
+              )}
+            </div>
+          </div>
+
+          {/* Membri organizzazione */}
+          <div className="bg-gray-900 border border-red-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">👥 Team Organizzazione</h3>
+            <div className="space-y-3">
+              {dashboardData.members?.length > 0 ? (
+                dashboardData.members.map(member => (
+                  <div key={member.id} className="flex items-center space-x-3 bg-gray-800 rounded-lg p-3">
+                    {member.profile_image ? (
+                      <img src={member.profile_image} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold">{member.nome?.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-white font-bold">{member.nome} {member.cognome}</p>
+                      <p className="text-gray-400 text-sm">
+                        {member.ruolo === 'capo_promoter' ? '🎯 Capo Promoter' : '🎪 Promoter'} • {member.citta}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-gray-400">Nessun membro trovato</p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Chat attive */}
+        <div className="mt-8 bg-gray-900 border border-red-600 rounded-lg p-6">
+          <h3 className="text-xl font-bold text-white mb-4">💬 Le Tue Chat Attive</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dashboardData.chats?.length > 0 ? (
+              dashboardData.chats.map(chat => (
+                <div key={chat.id} className="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
+                     onClick={() => { setSelectedChat(chat); setShowChat(true); fetchChatMessages(chat.id); }}>
+                  <div className="flex items-center space-x-3 mb-2">
+                    {chat.client?.profile_image ? (
+                      <img src={chat.client.profile_image} alt="Client" className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-bold">{chat.client?.nome?.charAt(0)}</span>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-white font-bold text-sm">{chat.client?.nome} {chat.client?.cognome}</p>
+                      <p className="text-gray-400 text-xs">{chat.event?.name}</p>
+                    </div>
+                  </div>
+                  {chat.last_message && (
+                    <p className="text-gray-500 text-xs truncate">{chat.last_message.message}</p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400">Nessuna chat attiva</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const CapoPromoterDashboard = () => {
+    if (!dashboardData) return <div className="text-center py-8">Caricamento dashboard...</div>;
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-white mb-2">🎯 Dashboard Capo Promoter</h2>
+          <p className="text-gray-400">Organizzazione: <span className="text-red-400 font-bold">{dashboardData.organization}</span></p>
+        </div>
+
+        {/* Come la dashboard promoter ma con funzionalità aggiuntive */}
+        <PromoterDashboard />
+
+        {/* Sezione aggiuntiva per funzionalità capo promoter */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="bg-gray-900 border border-yellow-500 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">⚙️ Gestione Eventi</h3>
+            <p className="text-gray-400 mb-4">Puoi modificare gli eventi della tua organizzazione</p>
+            <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold transition-colors">
+              Modifica Eventi
+            </button>
+          </div>
+
+          <div className="bg-gray-900 border border-green-500 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">👥 Crea Promoter</h3>
+            <p className="text-gray-400 mb-4">Aggiungi nuovi promoter alla tua organizzazione</p>
+            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors">
+              Crea Credenziali
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ClublyFounderDashboard = () => {
+    if (!dashboardData) return <div className="text-center py-8">Caricamento dashboard...</div>;
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-white mb-2">👑 Dashboard Clubly Founder</h2>
+          <p className="text-gray-400">Gestione completa della piattaforma</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Statistiche generali */}
+          <div className="bg-gray-900 border border-purple-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">📊 Statistiche</h3>
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Organizzazioni:</span>
+                <span className="text-white font-bold">{dashboardData.organizations?.length || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Eventi Totali:</span>
+                <span className="text-white font-bold">{dashboardData.events?.length || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Capi Promoter:</span>
+                <span className="text-white font-bold">{dashboardData.users?.capo_promoter?.length || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Promoter:</span>
+                <span className="text-white font-bold">{dashboardData.users?.promoter?.length || 0}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Clienti:</span>
+                <span className="text-white font-bold">{dashboardData.users?.cliente || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Organizzazioni */}
+          <div className="bg-gray-900 border border-blue-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">🏢 Organizzazioni</h3>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {dashboardData.organizations?.map(org => (
+                <div key={org.id} className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-white font-bold">{org.name}</p>
+                  <p className="text-gray-400 text-sm">📍 {org.location}</p>
+                </div>
+              ))}
+            </div>
+            <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors w-full">
+              Crea Organizzazione
+            </button>
+          </div>
+
+          {/* Gestione utenti */}
+          <div className="bg-gray-900 border border-green-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">👥 Gestione Utenti</h3>
+            <div className="space-y-3">
+              <div className="bg-gray-800 rounded-lg p-3">
+                <p className="text-white font-bold">Capi Promoter</p>
+                <div className="mt-2 space-y-1">
+                  {dashboardData.users?.capo_promoter?.slice(0, 3).map(user => (
+                    <p key={user.id} className="text-gray-400 text-sm">• {user.nome} {user.cognome}</p>
+                  ))}
+                </div>
+              </div>
+              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors w-full">
+                Crea Capo Promoter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Eventi recenti */}
+        <div className="mt-8 bg-gray-900 border border-red-600 rounded-lg p-6">
+          <h3 className="text-xl font-bold text-white mb-4">🎉 Tutti gli Eventi</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {dashboardData.events?.slice(0, 6).map(event => (
+              <div key={event.id} className="bg-gray-800 rounded-lg p-4">
+                <h4 className="text-white font-bold">{event.name}</h4>
+                <p className="text-gray-300 text-sm">🏢 {event.organization}</p>
+                <p className="text-gray-300 text-sm">📍 {event.location}</p>
+                <p className="text-gray-300 text-sm">📅 {event.date}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const EventCard = ({ event }) => (
     <div className="bg-gray-900 border border-red-600 rounded-lg overflow-hidden shadow-lg hover:shadow-red-500/20 transition-all duration-300 transform hover:scale-105">
       <div className="h-48 bg-gradient-to-br from-red-600 to-black relative overflow-hidden">
