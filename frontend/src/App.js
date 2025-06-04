@@ -540,34 +540,124 @@ function App() {
   };
 
   const CapoPromoterDashboard = () => {
-    if (!dashboardData) return <div className="text-center py-8">Caricamento dashboard...</div>;
-
+    if (!dashboardData) return <div className="text-white">Caricamento...</div>;
+    
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">🎯 Dashboard Capo Promoter</h2>
-          <p className="text-gray-400">Organizzazione: <span className="text-red-400 font-bold">{dashboardData.organization}</span></p>
-        </div>
+        <h1 className="text-3xl font-bold text-white mb-8 flex items-center">
+          🎯 Dashboard Capo Promoter
+          <span className="ml-4 text-gray-400 text-lg">Organizzazione: {dashboardData.organization}</span>
+        </h1>
 
-        {/* Come la dashboard promoter ma con funzionalità aggiuntive */}
-        <PromoterDashboard />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Gestione eventi */}
+          <div className="bg-gray-900 border border-red-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">🎉 Gestione Eventi</h3>
+            <div className="space-y-3 max-h-48 overflow-y-auto">
+              {dashboardData.events?.map(event => (
+                <div key={event.id} className="bg-gray-800 rounded-lg p-3">
+                  <h4 className="text-white font-bold">{event.name}</h4>
+                  <p className="text-gray-300 text-sm">📅 {event.date}</p>
+                  <p className="text-gray-300 text-sm">📍 {event.location}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 space-y-2">
+              <button 
+                onClick={() => setShowCreateEvent(true)}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+              >
+                ➕ Crea Evento
+              </button>
+              <button 
+                onClick={() => alert('Funzione in sviluppo: Modifica Eventi')}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+              >
+                ✏️ Modifica Eventi
+              </button>
+            </div>
+          </div>
 
-        {/* Sezione aggiuntiva per funzionalità capo promoter */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="bg-gray-900 border border-yellow-500 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-white mb-4">⚙️ Gestione Eventi</h3>
-            <p className="text-gray-400 mb-4">Puoi modificare gli eventi della tua organizzazione</p>
-            <button className="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold transition-colors">
-              Modifica Eventi
+          {/* Team organizzazione */}
+          <div className="bg-gray-900 border border-blue-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">👥 Team Organizzazione</h3>
+            <div className="space-y-3 max-h-48 overflow-y-auto">
+              {dashboardData.members?.map(member => (
+                <div 
+                  key={member.id}
+                  onClick={() => viewUserProfile(member.id)}
+                  className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    {member.profile_image && (
+                      <img 
+                        src={member.profile_image} 
+                        alt={member.nome}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    )}
+                    <div>
+                      <p className="text-white font-bold">@{member.username}</p>
+                      <p className="text-gray-300 text-sm">
+                        {member.ruolo === 'capo_promoter' ? '🎯' : '🎪'} {member.nome} {member.cognome}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => alert('Funzione in sviluppo: Crea Credenziali Promoter')}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+            >
+              🆔 Crea Credenziali
             </button>
           </div>
 
-          <div className="bg-gray-900 border border-green-500 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-white mb-4">👥 Crea Promoter</h3>
-            <p className="text-gray-400 mb-4">Aggiungi nuovi promoter alla tua organizzazione</p>
-            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors">
-              Crea Credenziali
+          {/* Chat attive */}
+          <div className="bg-gray-900 border border-green-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">💬 Chat Attive</h3>
+            <div className="space-y-3 max-h-48 overflow-y-auto">
+              {dashboardData.chats?.slice(0, 5).map(chat => (
+                <div key={chat.id} className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-white font-bold">{chat.client?.nome}</p>
+                  <p className="text-gray-300 text-sm">{chat.event?.name}</p>
+                  {chat.last_message && (
+                    <p className="text-gray-400 text-xs truncate">
+                      {chat.last_message.message.substring(0, 40)}...
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => setShowChat(true)}
+              className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+            >
+              💬 Apri Chat
             </button>
+          </div>
+        </div>
+
+        {/* User Search Section */}
+        <div className="mt-8 bg-gray-900 border border-purple-600 rounded-lg p-6">
+          <h3 className="text-xl font-bold text-white mb-4">🔍 Ricerca Utenti</h3>
+          <button 
+            onClick={() => setShowUserSearch(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition-colors"
+          >
+            Cerca Utenti Clubly
+          </button>
+        </div>
+
+        {/* Permessi aggiuntivi */}
+        <div className="mt-8 bg-gray-900 border border-yellow-600 rounded-lg p-6">
+          <h3 className="text-xl font-bold text-white mb-4">⚡ Permessi Speciali</h3>
+          <p className="text-gray-300 mb-4">Come Capo Promoter hai accesso a funzionalità avanzate di gestione.</p>
+          <div className="flex flex-wrap gap-4">
+            <div className="bg-yellow-600 px-4 py-2 rounded text-black font-bold">✅ Modifica Eventi</div>
+            <div className="bg-yellow-600 px-4 py-2 rounded text-black font-bold">✅ Gestione Team</div>
+            <div className="bg-yellow-600 px-4 py-2 rounded text-black font-bold">✅ Crea Promoter</div>
           </div>
         </div>
       </div>
