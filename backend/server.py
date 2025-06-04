@@ -664,6 +664,269 @@ async def update_booking_status(booking_id: str, status: str, current_user = Dep
     
     return {"message": f"Prenotazione {status} con successo"}
 
+# User setup endpoint
+@app.post("/api/user/setup")
+async def complete_user_setup(setup: UserSetup, current_user = Depends(verify_jwt_token)):
+    """Complete user profile setup for temporary accounts"""
+    # Check if username is already taken
+    existing_user = db.users.find_one({
+        "username": setup.username,
+        "id": {"$ne": current_user["id"]}
+    })
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username già esistente")
+    
+    # Update user profile
+    update_data = {
+        "cognome": setup.cognome,
+        "username": setup.username,
+        "data_nascita": setup.data_nascita,
+        "citta": setup.citta,
+        "profile_image": setup.profile_image,
+        "needs_setup": False,
+        "updated_at": datetime.utcnow()
+    }
+    
+    result = db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    
+    # Return updated user data
+    updated_user = db.users.find_one({"id": current_user["id"]}, {"_id": 0, "password": 0})
+    return {"message": "Profilo completato con successo", "user": updated_user}
+
+# Organization management endpoints
+@app.get("/api/organizations")
+async def get_organizations():
+    organizations = list(db.organizations.find({}, {"_id": 0}))
+    return organizations
+
+@app.post("/api/organizations")
+async def create_organization(org: OrganizationCreate, current_user = Depends(verify_jwt_token)):
+    """Create a new organization (only clubly_founder can do this)"""
+    if current_user["ruolo"] != "clubly_founder":
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Check if organization name already exists
+    if db.organizations.find_one({"name": org.name}):
+        raise HTTPException(status_code=400, detail="Organizzazione già esistente")
+    
+    org_data = {
+        "id": str(uuid.uuid4()),
+        "name": org.name,
+        "location": org.location,
+        "capo_promoter_username": org.capo_promoter_username,
+        "capo_promoter_id": None,  # Will be set when capo promoter confirms
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow()
+    }
+    
+    db.organizations.insert_one(org_data)
+    return {"message": "Organizzazione creata con successo", "organization_id": org_data["id"]}
+
+@app.get("/api/organizations/{org_name}/members")
+async def get_organization_members(org_name: str, current_user = Depends(verify_jwt_token)):
+    """Get all members of an organization"""
+    # Check if user has access to this organization
+    if current_user["ruolo"] not in ["capo_promoter", "promoter", "clubly_founder"]:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    members = list(db.users.find(
+        {"organization": org_name}, 
+        {"_id": 0, "password": 0}
+    ).sort("ruolo", 1))
+    
+    return members
+
+@app.get("/api/organizations/{org_name}/events")
+async def get_organization_events(org_name: str, current_user = Depends(verify_jwt_token)):
+    """Get all events for an organization"""
+    events = list(db.events.find(
+        {"organization": org_name}, 
+        {"_id": 0}
+    ).sort("date", 1))
+    
+    return events
+
+# Temporary credentials management
+@app.post("/api/users/temporary-credentials")
+async def create_temporary_credentials(creds: TemporaryCredentials, current_user = Depends(verify_jwt_token)):
+    """Create temporary credentials for new promoters/capo_promoters"""
+    # Check permissions
+    if current_user["ruolo"] == "capo_promoter" and creds.ruolo != "promoter":
+        raise HTTPException(status_code=403, detail="Capo promoter può creare solo account promoter")
+    elif current_user["ruolo"] == "clubly_founder" and creds.ruolo not in ["promoter", "capo_promoter"]:
+        raise HTTPException(status_code=403, detail="Ruolo non valido")
+    elif current_user["ruolo"] not in ["capo_promoter", "clubly_founder"]:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Check if email already exists
+    if db.users.find_one({"email": creds.email}):
+        raise HTTPException(status_code=400, detail="Email già esistente")
+    
+    # Set organization for promoters created by capo_promoter
+    organization = creds.organization
+    if current_user["ruolo"] == "capo_promoter":
+        # Get current user's organization
+        user = db.users.find_one({"id": current_user["id"]})
+        organization = user.get("organization")
+    
+    # Create temporary user
+    user_data = {
+        "id": str(uuid.uuid4()),
+        "nome": creds.nome,
+        "cognome": "",  # Will be set during setup
+        "email": creds.email,
+        "username": "",  # Will be set during setup
+        "password": hash_password(creds.password),
+        "ruolo": creds.ruolo,
+        "data_nascita": "",  # Will be set during setup
+        "citta": "",  # Will be set during setup
+        "organization": organization,
+        "profile_image": None,
+        "needs_setup": True,
+        "status": "available" if creds.ruolo == "promoter" else None,
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow()
+    }
+    
+    db.users.insert_one(user_data)
+    
+    return {
+        "message": "Credenziali temporanee create con successo",
+        "user_id": user_data["id"],
+        "email": creds.email,
+        "temporary_password": creds.password
+    }
+
+# Dashboard data endpoints
+@app.get("/api/dashboard/promoter")
+async def get_promoter_dashboard(current_user = Depends(verify_jwt_token)):
+    """Get promoter dashboard data"""
+    if current_user["ruolo"] not in ["promoter", "capo_promoter"]:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    user = db.users.find_one({"id": current_user["id"]})
+    organization = user.get("organization")
+    
+    # Get organization events
+    events = list(db.events.find(
+        {"organization": organization}, 
+        {"_id": 0}
+    ).sort("date", 1))
+    
+    # Get organization members
+    members = list(db.users.find(
+        {"organization": organization}, 
+        {"_id": 0, "password": 0}
+    ).sort("ruolo", 1))
+    
+    # Get promoter's active chats
+    chats = list(db.chats.find({
+        "promoter_id": current_user["id"],
+        "status": "active"
+    }, {"_id": 0}).sort("created_at", -1))
+    
+    # Populate chat details
+    for chat in chats:
+        event = db.events.find_one({"id": chat["event_id"]}, {"_id": 0})
+        client = db.users.find_one({"id": chat["client_id"]}, {"_id": 0, "password": 0})
+        chat["event"] = event
+        chat["client"] = client
+        
+        # Get last message
+        last_message = db.chat_messages.find_one(
+            {"chat_id": chat["id"]}, 
+            {"_id": 0}, 
+            sort=[("timestamp", -1)]
+        )
+        chat["last_message"] = last_message
+    
+    return {
+        "organization": organization,
+        "events": events,
+        "members": members,
+        "chats": chats
+    }
+
+@app.get("/api/dashboard/capo-promoter")
+async def get_capo_promoter_dashboard(current_user = Depends(verify_jwt_token)):
+    """Get capo promoter dashboard data"""
+    if current_user["ruolo"] != "capo_promoter":
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Get the same data as promoter dashboard
+    dashboard_data = await get_promoter_dashboard(current_user)
+    
+    # Add additional permissions info
+    dashboard_data["can_edit_events"] = True
+    dashboard_data["can_create_promoters"] = True
+    
+    return dashboard_data
+
+@app.get("/api/dashboard/clubly-founder")
+async def get_clubly_founder_dashboard(current_user = Depends(verify_jwt_token)):
+    """Get clubly founder dashboard data"""
+    if current_user["ruolo"] != "clubly_founder":
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Get all organizations
+    organizations = list(db.organizations.find({}, {"_id": 0}))
+    
+    # Get all events
+    events = list(db.events.find({}, {"_id": 0}).sort("date", 1))
+    
+    # Get all users by role
+    users_by_role = {
+        "capo_promoter": list(db.users.find({"ruolo": "capo_promoter"}, {"_id": 0, "password": 0})),
+        "promoter": list(db.users.find({"ruolo": "promoter"}, {"_id": 0, "password": 0})),
+        "cliente": db.users.count_documents({"ruolo": "cliente"})
+    }
+    
+    return {
+        "organizations": organizations,
+        "events": events,
+        "users": users_by_role
+    }
+
+# Event management for capo promoters
+@app.put("/api/events/{event_id}")
+async def update_event(event_id: str, event_update: dict, current_user = Depends(verify_jwt_token)):
+    """Update event details (only capo_promoter can do this)"""
+    if current_user["ruolo"] not in ["capo_promoter", "clubly_founder"]:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Check if event exists and user has permission
+    event = db.events.find_one({"id": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    # If capo_promoter, check if event belongs to their organization
+    if current_user["ruolo"] == "capo_promoter":
+        user = db.users.find_one({"id": current_user["id"]})
+        if event["organization"] != user.get("organization"):
+            raise HTTPException(status_code=403, detail="Non autorizzato per questo evento")
+    
+    # Update allowed fields
+    allowed_fields = ["location", "start_time", "date", "lineup"]
+    update_data = {k: v for k, v in event_update.items() if k in allowed_fields}
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_by"] = current_user["id"]
+    
+    result = db.events.update_one(
+        {"id": event_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    return {"message": "Evento aggiornato con successo"}
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
