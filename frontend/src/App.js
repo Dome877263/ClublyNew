@@ -842,9 +842,54 @@ function App() {
       <header className="bg-gray-900 border-b border-red-600">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-red-500">CLUBLY</h1>
+            <div className="flex items-center space-x-4">
+              <h1 className="text-2xl font-bold text-red-500">CLUBLY</h1>
+              
+              {currentUser && (
+                <div className="flex items-center space-x-2">
+                  {currentUser.profile_image && (
+                    <img 
+                      src={currentUser.profile_image} 
+                      alt="Profile" 
+                      className="w-8 h-8 rounded-full object-cover border border-red-500"
+                    />
+                  )}
+                  <div className="flex items-center space-x-1">
+                    <span className="text-gray-300 text-sm">
+                      {currentUser.ruolo === 'clubly_founder' ? '👑' : 
+                       currentUser.ruolo === 'capo_promoter' ? '🎯' :
+                       currentUser.ruolo === 'promoter' ? '🎪' : '🎉'}
+                    </span>
+                    <span className="text-gray-300">Ciao, {currentUser.nome}!</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             {currentUser ? (
               <div className="flex items-center space-x-4">
+                {currentUser.ruolo !== 'cliente' && currentView === 'main' && (
+                  <button 
+                    onClick={() => setCurrentView(
+                      currentUser.ruolo === 'promoter' ? 'promoter' :
+                      currentUser.ruolo === 'capo_promoter' ? 'capo-promoter' :
+                      currentUser.ruolo === 'clubly_founder' ? 'clubly-founder' : 'main'
+                    )}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded font-bold transition-colors"
+                  >
+                    🎛️ La Mia Dashboard
+                  </button>
+                )}
+                
+                {currentView !== 'main' && (
+                  <button 
+                    onClick={() => setCurrentView('main')}
+                    className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded font-bold transition-colors"
+                  >
+                    🏠 Dashboard Principale
+                  </button>
+                )}
+                
                 <button 
                   onClick={() => setShowChat(true)}
                   className="bg-gray-700 hover:bg-gray-600 text-white px-3 py-2 rounded font-bold transition-colors relative"
@@ -856,9 +901,14 @@ function App() {
                     </span>
                   )}
                 </button>
-                <span className="text-gray-300">Ciao, {currentUser.nome}!</span>
+                
                 <button 
-                  onClick={() => { localStorage.removeItem('token'); setCurrentUser(null); setChats([]); }}
+                  onClick={() => { 
+                    localStorage.removeItem('token'); 
+                    setCurrentUser(null); 
+                    setChats([]); 
+                    setCurrentView('main');
+                  }}
                   className="text-red-400 hover:text-red-300"
                 >
                   Esci
