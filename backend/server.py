@@ -371,6 +371,7 @@ async def register(user: UserRegister):
         "ruolo": user.ruolo,
         "data_nascita": user.data_nascita,
         "citta": user.citta,
+        "biografia": user.biografia or "",
         "profile_image": user.profile_image,
         "needs_setup": False,
         "created_at": datetime.utcnow()
