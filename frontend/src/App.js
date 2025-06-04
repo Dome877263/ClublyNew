@@ -569,10 +569,16 @@ function App() {
             <h3 className="text-xl font-bold text-white mb-4">🎉 Gestione Eventi</h3>
             <div className="space-y-3 max-h-48 overflow-y-auto">
               {dashboardData.events?.map(event => (
-                <div key={event.id} className="bg-gray-800 rounded-lg p-3">
+                <div 
+                  key={event.id} 
+                  className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  onClick={() => openEditEvent(event)}
+                  title="Clicca per modificare questo evento"
+                >
                   <h4 className="text-white font-bold">{event.name}</h4>
                   <p className="text-gray-300 text-sm">📅 {event.date}</p>
                   <p className="text-gray-300 text-sm">📍 {event.location}</p>
+                  <p className="text-orange-400 text-xs mt-1">👆 Clicca per modificare</p>
                 </div>
               ))}
             </div>
