@@ -106,13 +106,40 @@ function App() {
         localStorage.setItem('token', data.token);
         setCurrentUser(data.user);
         setShowAuth(false);
-        setShowBooking(true);
+        if (selectedEvent) {
+          setShowBooking(true);
+        }
       } else {
         const error = await response.json();
         alert(error.message || 'Errore durante la registrazione');
       }
     } catch (error) {
       alert('Errore durante la registrazione');
+    }
+  };
+
+  const handleUserSetup = async (setupData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/user/setup`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(setupData)
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUser(data.user);
+        setShowUserSetup(false);
+        alert('Profilo completato con successo!');
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Errore durante la configurazione del profilo');
+      }
+    } catch (error) {
+      alert('Errore durante la configurazione del profilo');
     }
   };
 
