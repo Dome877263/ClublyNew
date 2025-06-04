@@ -3,6 +3,7 @@ import './App.css';
 import { 
   UserSearchModal, 
   CreateEventModal, 
+  EditEventModal,
   CreateOrganizationModal, 
   CreateCapoPromoterModal, 
   OrganizationDetailsModal 
