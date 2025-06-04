@@ -1437,7 +1437,10 @@ function App() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
-                        <h3 className="text-white font-semibold">
+                        <h3 
+                          className="text-white font-semibold cursor-pointer hover:text-red-400 transition-colors"
+                          onClick={() => viewUserProfile(chat.other_participant?.id)}
+                        >
                           @{chat.other_participant?.username}
                         </h3>
                         <span className="text-xs bg-gray-700 px-2 py-1 rounded">
