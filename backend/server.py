@@ -398,6 +398,7 @@ async def register(user: UserRegister):
             "username": user_data["username"],
             "ruolo": user_data["ruolo"],
             "citta": user_data["citta"],
+            "biografia": user_data["biografia"],
             "profile_image": user_data["profile_image"],
             "needs_setup": user_data["needs_setup"]
         }
