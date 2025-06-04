@@ -427,7 +427,10 @@ async def get_profile(current_user = Depends(verify_jwt_token)):
         "email": db_user["email"],
         "username": db_user["username"],
         "ruolo": db_user["ruolo"],
-        "citta": db_user["citta"]
+        "citta": db_user["citta"],
+        "profile_image": db_user.get("profile_image"),
+        "needs_setup": db_user.get("needs_setup", False),
+        "organization": db_user.get("organization")
     }
 
 # Events endpoints
