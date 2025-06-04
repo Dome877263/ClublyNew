@@ -404,6 +404,33 @@ function App() {
     }
   };
 
+  const createEventByFounder = async (eventData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(eventData)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert('Evento creato con successo!');
+        setShowCreateEvent(false);
+        fetchDashboardData(); // Refresh dashboard data
+        fetchEvents(); // Refresh events list
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Errore durante la creazione dell\'evento');
+    }
+  };
+
   const createOrganization = async (orgData) => {
     try {
       const response = await fetch(`${backendUrl}/api/organizations`, {
