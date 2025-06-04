@@ -377,6 +377,33 @@ function App() {
     }
   };
 
+  const updateEvent = async (eventId, eventData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/events/${eventId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(eventData)
+      });
+      
+      if (response.ok) {
+        alert('Evento aggiornato con successo!');
+        setShowEditEvent(false);
+        setSelectedEventToEdit(null);
+        fetchDashboardData(); // Refresh dashboard data
+        fetchEvents(); // Refresh events list
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error updating event:', error);
+      alert('Errore durante l\'aggiornamento dell\'evento');
+    }
+  };
+
   const createOrganization = async (orgData) => {
     try {
       const response = await fetch(`${backendUrl}/api/organizations`, {
