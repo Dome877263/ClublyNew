@@ -963,6 +963,7 @@ function App() {
       {/* Modals */}
       {showEventDetails && selectedEvent && <EventDetailsModal />}
       {showAuth && <AuthModal />}
+      {showUserSetup && <UserSetupModal />}
       {showBooking && selectedEvent && <BookingModal />}
       {showChat && <ChatModal />}
     </div>
