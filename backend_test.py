@@ -5,6 +5,7 @@ import os
 import time
 import random
 import string
+from datetime import datetime, timedelta
 
 # Get the backend URL from the frontend .env file
 BACKEND_URL = "https://87560b1c-8b4d-4f7d-aaba-bda3cc8ffa43.preview.emergentagent.com/api"
@@ -21,7 +22,12 @@ test_results = {
     "get_organizations": False,
     "create_organization": False,
     "create_temporary_credentials": False,
-    "complete_user_setup": False
+    "complete_user_setup": False,
+    # New API tests
+    "user_profile_viewing": False,
+    "user_search": False,
+    "event_creation_by_promoter": False,
+    "organization_details": False
 }
 
 # Store tokens for different user roles
