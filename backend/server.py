@@ -41,6 +41,7 @@ class UserRegister(BaseModel):
     citta: str
     ruolo: str = "cliente"
     profile_image: Optional[str] = None
+    biografia: Optional[str] = None
 
 class UserLogin(BaseModel):
     login: str  # Can be email or username
@@ -52,6 +53,20 @@ class UserSetup(BaseModel):
     data_nascita: str
     citta: str
     profile_image: Optional[str] = None
+    biografia: Optional[str] = None
+
+class EventCreate(BaseModel):
+    name: str
+    date: str
+    start_time: str
+    location: str
+    organization: Optional[str] = None
+    end_time: Optional[str] = None
+    lineup: Optional[List[str]] = []
+    location_address: Optional[str] = None
+    total_tables: Optional[int] = 0
+    table_types: Optional[List[str]] = []
+    max_party_size: Optional[int] = 10
 
 class OrganizationCreate(BaseModel):
     name: str
