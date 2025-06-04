@@ -868,6 +868,11 @@ def run_all_tests():
     test_event_creation_by_promoter()
     test_organization_details()
     
+    # Capo promoter event update tests
+    test_capo_promoter_event_update_allowed_fields()
+    test_capo_promoter_event_update_restricted_fields()
+    test_promoter_event_update_authorization()
+    
     # Print summary
     print("\n=== Test Results Summary ===")
     for test_name, result in test_results.items():
