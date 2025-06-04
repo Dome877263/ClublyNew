@@ -156,10 +156,32 @@ def initialize_default_data():
             "ruolo": "clubly_founder",
             "data_nascita": "1990-01-01",
             "citta": "Milano",
+            "profile_image": None,
+            "needs_setup": False,
             "created_at": datetime.utcnow()
         }
         db.users.insert_one(admin_user)
         print("Default admin user created")
+
+    # Create default capo promoter if not exists
+    if not db.users.find_one({"ruolo": "capo_promoter"}):
+        capo_promoter = {
+            "id": str(uuid.uuid4()),
+            "nome": "Marco",
+            "cognome": "Capo",
+            "email": "capo@clubly.it",
+            "username": "capo_milano",
+            "password": hash_password("Password1"),
+            "ruolo": "capo_promoter",
+            "data_nascita": "1988-05-10",
+            "citta": "Milano",
+            "organization": "Night Events Milano",
+            "profile_image": None,
+            "needs_setup": False,
+            "created_at": datetime.utcnow()
+        }
+        db.users.insert_one(capo_promoter)
+        print("Default capo promoter created")
 
     # Create sample promoters if none exist
     if not db.users.find_one({"ruolo": "promoter"}):
@@ -176,6 +198,8 @@ def initialize_default_data():
                 "citta": "Milano",
                 "organization": "Night Events Milano",
                 "status": "available",
+                "profile_image": None,
+                "needs_setup": False,
                 "created_at": datetime.utcnow()
             },
             {
@@ -190,6 +214,8 @@ def initialize_default_data():
                 "citta": "Roma",
                 "organization": "Urban Nights",
                 "status": "available",
+                "profile_image": None,
+                "needs_setup": False,
                 "created_at": datetime.utcnow()
             },
             {
@@ -204,11 +230,41 @@ def initialize_default_data():
                 "citta": "Torino",
                 "organization": "Electronic Sessions",
                 "status": "available",
+                "profile_image": None,
+                "needs_setup": False,
                 "created_at": datetime.utcnow()
             }
         ]
         db.users.insert_many(sample_promoters)
         print("Sample promoters created")
+
+    # Create organizations if none exist
+    if db.organizations.count_documents({}) == 0:
+        sample_organizations = [
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Night Events Milano",
+                "location": "Milano",
+                "capo_promoter_id": None,  # Will be updated when capo promoter confirms
+                "created_at": datetime.utcnow()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Urban Nights",
+                "location": "Roma", 
+                "capo_promoter_id": None,
+                "created_at": datetime.utcnow()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Electronic Sessions",
+                "location": "Torino",
+                "capo_promoter_id": None,
+                "created_at": datetime.utcnow()
+            }
+        ]
+        db.organizations.insert_many(sample_organizations)
+        print("Sample organizations created")
 
     # Create sample events if none exist
     if db.events.count_documents({}) == 0:
