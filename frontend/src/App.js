@@ -584,7 +584,7 @@ function App() {
                 ➕ Crea Evento
               </button>
               <button 
-                onClick={() => alert('Funzione in sviluppo: Modifica Eventi')}
+                onClick={() => alert('Seleziona un evento dall\'elenco sopra per modificarlo')}
                 className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
               >
                 ✏️ Modifica Eventi
