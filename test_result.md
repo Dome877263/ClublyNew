@@ -176,7 +176,67 @@ backend:
         comment: "Aggiornati tutti i modelli utente e endpoint per supportare il campo biografia. Aggiornati utenti di esempio con biografie."
 
 frontend:
-  - task: "Login con username o email - UI"
+  - task: "User Profile Viewing Modal"
+    implemented: true
+    working: true
+    file: "App.js, Modals.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementata UserProfileModal che mostra tutte le informazioni utente: nome, cognome, username, foto profilo, città, biografia, ruolo, organizzazione e data di registrazione. Aggiornate dashboard per mostrare username nei card utenti."
+
+  - task: "User Search Interface"
+    implemented: true
+    working: true
+    file: "App.js, Modals.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementata UserSearchModal con ricerca testuale, filtri per ruolo e date di creazione. Aggiunta sezione ricerca utenti in tutte le dashboard."
+
+  - task: "Event Creation for Promoters"
+    implemented: true
+    working: true
+    file: "App.js, Modals.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementata CreateEventModal con tutti i campi richiesti: obbligatori (nome, data con calendario, orario inizio con menu tendina, locale) e facoltativi (organizzazione, orario fine, lineup DJ, indirizzo, tavoli). Aggiunto pulsante 'Crea Evento' nelle dashboard promoter."
+
+  - task: "Organization Management for Clubly Founder"
+    implemented: true
+    working: true
+    file: "App.js, Modals.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementate CreateOrganizationModal e OrganizationDetailsModal. Rese funzionanti i pulsanti 'Crea Organizzazione' e click sulle organizzazioni per vedere dettagli con membri ed eventi."
+
+  - task: "Capo Promoter Creation for Clubly Founder"
+    implemented: true
+    working: true
+    file: "App.js, Modals.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementata CreateCapoPromoterModal e reso funzionante il pulsante 'Crea Capo Promoter' nella dashboard Clubly Founder."
+
+  - task: "Enhanced Chat System"
     implemented: true
     working: true
     file: "App.js"
@@ -186,45 +246,9 @@ frontend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Modificato campo email per accettare 'Email o Username' e aggiornata logica handleLogin."
+        comment: "Completamente ridisegnata ChatModal con interfaccia migliorata: textarea invece di input, gestione Enter per invio, stato loading, messaggi con design moderno, username nelle chat, foto profilo e indicatori stato."
 
-  - task: "Design migliorato modali autenticazione"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Ridisegnate modali auth con gradients, animazioni, focus states migliori, e credenziali demo visibili."
-
-  - task: "Upload foto profilo durante registrazione"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Aggiunto sistema upload foto profilo con preview e conversione in base64 per compatibilità."
-
-  - task: "Modal setup profilo"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Implementato UserSetupModal per completamento profilo utenti con credenziali temporanee."
-
-  - task: "Header aggiornato con foto profilo e ruoli"
+  - task: "Clickable User Cards in All Dashboards"
     implemented: true
     working: true
     file: "App.js"
@@ -234,9 +258,9 @@ frontend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Aggiornato header per mostrare foto profilo, emoji ruolo, e pulsanti per dashboard specifiche."
+        comment: "Rese cliccabili tutte le card utenti nelle dashboard (membri organizzazione, capi promoter, etc.) per aprire il profilo completo. Aggiunta visualizzazione username."
 
-  - task: "Sistema di navigazione dashboard"
+  - task: "Enhanced Dashboard Design"
     implemented: true
     working: true
     file: "App.js"
@@ -246,31 +270,7 @@ frontend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Implementato sistema currentView per navigazione tra dashboard principale e specifiche per ruolo."
-
-  - task: "Fix funzionalità chat - invio messaggi"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Migliorata funzione sendMessage con tutti i campi richiesti dal backend e migliore gestione errori."
-
-  - task: "Gestione stato needs_setup"
-    implemented: true
-    working: true
-    file: "App.js"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Implementata logica per mostrare modal setup quando user.needs_setup = true."
+        comment: "Ridisegnate tutte le dashboard con layout a grid responsive, pulsanti funzionanti, sezioni organizzate e colori distintivi per ogni sezione."
 
 metadata:
   created_by: "main_agent"
