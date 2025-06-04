@@ -43,6 +43,11 @@ function App() {
         if (response.ok) {
           const user = await response.json();
           setCurrentUser(user);
+          
+          // Check if user needs setup
+          if (user.needs_setup) {
+            setShowUserSetup(true);
+          }
         }
       } catch (error) {
         console.error('Auth check failed:', error);
