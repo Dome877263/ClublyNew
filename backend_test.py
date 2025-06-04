@@ -378,6 +378,221 @@ def test_complete_user_setup():
     
     return test_results["complete_user_setup"]
 
+# Test user profile viewing API
+def test_user_profile_viewing():
+    print("\n=== Testing user profile viewing API ===")
+    
+    # First, we need to login as admin
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot test user profile viewing without admin token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Get a user ID to view (we'll use the admin's ID from the token)
+    import jwt
+    token_data = jwt.decode(tokens["admin"], options={"verify_signature": False})
+    user_id = token_data.get("id")
+    
+    if not user_id:
+        print("❌ Could not extract user ID from token")
+        return False
+    
+    response = requests.get(f"{BACKEND_URL}/users/{user_id}/profile", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ User profile viewing API successful. Username: {data.get('username')}")
+        print(f"   Biography: {data.get('biografia')}")
+        test_results["user_profile_viewing"] = True
+    else:
+        print(f"❌ User profile viewing API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["user_profile_viewing"]
+
+# Test user search API
+def test_user_search():
+    print("\n=== Testing user search API ===")
+    
+    # First, we need to login as admin
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot test user search without admin token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Test 1: Search by name
+    print("Test 1: Search by name")
+    payload = {
+        "search_term": "admin"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/users/search", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ User search by name successful. Results: {len(data)}")
+        name_search_success = len(data) > 0
+    else:
+        print(f"❌ User search by name failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+        name_search_success = False
+    
+    # Test 2: Search by role
+    print("Test 2: Search by role")
+    payload = {
+        "role_filter": "promoter"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/users/search", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ User search by role successful. Results: {len(data)}")
+        role_search_success = len(data) > 0
+    else:
+        print(f"❌ User search by role failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+        role_search_success = False
+    
+    # Test 3: Search by date range
+    print("Test 3: Search by date range")
+    # Set date range to include all users (past to future)
+    yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+    tomorrow = (datetime.utcnow() + timedelta(days=1)).isoformat()
+    
+    payload = {
+        "creation_date_from": yesterday,
+        "creation_date_to": tomorrow
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/users/search", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ User search by date range successful. Results: {len(data)}")
+        date_search_success = len(data) > 0
+    else:
+        print(f"❌ User search by date range failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+        date_search_success = False
+    
+    # Overall success if at least two of the three tests passed
+    test_results["user_search"] = (name_search_success + role_search_success + date_search_success) >= 2
+    
+    return test_results["user_search"]
+
+# Test event creation by promoter API
+def test_event_creation_by_promoter():
+    print("\n=== Testing event creation by promoter API ===")
+    
+    # First, we need to login as capo_promoter
+    if not tokens["capo_promoter"]:
+        test_login_with_capo_promoter()
+    
+    if not tokens["capo_promoter"]:
+        print("❌ Cannot test event creation without capo_promoter token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['capo_promoter']}"
+    }
+    
+    # Generate a random event name
+    event_name = f"Test Event {random_string()}"
+    
+    # Get tomorrow's date
+    tomorrow = (datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d")
+    
+    payload = {
+        "name": event_name,
+        "date": tomorrow,
+        "start_time": "22:00",
+        "location": "Test Club, Milano",
+        "end_time": "04:00",
+        "lineup": ["DJ Test", "DJ Sample"],
+        "location_address": "Via Test 123, Milano",
+        "total_tables": 10,
+        "table_types": ["Standard", "VIP"],
+        "max_party_size": 8
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/events/create-by-promoter", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Event creation by promoter API successful. Event ID: {data.get('event_id')}")
+        test_results["event_creation_by_promoter"] = True
+    else:
+        print(f"❌ Event creation by promoter API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["event_creation_by_promoter"]
+
+# Test organization details API
+def test_organization_details():
+    print("\n=== Testing organization details API ===")
+    
+    # First, we need to login as admin
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot test organization details without admin token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # First, get all organizations to find an ID
+    response = requests.get(f"{BACKEND_URL}/organizations", headers=headers)
+    
+    if response.status_code != 200:
+        print(f"❌ Could not get organizations list. Status code: {response.status_code}")
+        return False
+    
+    organizations = response.json()
+    
+    if not organizations:
+        print("❌ No organizations found")
+        return False
+    
+    # Use the first organization's ID
+    org_id = organizations[0]["id"]
+    
+    # Now get the details for this organization
+    response = requests.get(f"{BACKEND_URL}/organizations/{org_id}", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Organization details API successful. Organization: {data.get('name')}")
+        
+        # Check if members and events are included
+        has_members = "members" in data and isinstance(data["members"], list)
+        has_events = "events" in data and isinstance(data["events"], list)
+        
+        print(f"   Members included: {'Yes' if has_members else 'No'}")
+        print(f"   Events included: {'Yes' if has_events else 'No'}")
+        
+        test_results["organization_details"] = has_members and has_events
+    else:
+        print(f"❌ Organization details API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["organization_details"]
+
 # Run all tests
 def run_all_tests():
     print("\n=== Running all backend API tests ===\n")
@@ -401,6 +616,12 @@ def run_all_tests():
     test_create_temporary_credentials()
     test_complete_user_setup()
     
+    # New API tests
+    test_user_profile_viewing()
+    test_user_search()
+    test_event_creation_by_promoter()
+    test_organization_details()
+    
     # Print summary
     print("\n=== Test Results Summary ===")
     for test_name, result in test_results.items():
@@ -414,5 +635,34 @@ def run_all_tests():
     
     print(f"\nOverall success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
 
+# Run specific tests for the new APIs
+def run_new_api_tests():
+    print("\n=== Running tests for new APIs ===\n")
+    
+    # Authentication first
+    test_login_with_username()
+    test_login_with_capo_promoter()
+    
+    # New API tests
+    test_user_profile_viewing()
+    test_user_search()
+    test_event_creation_by_promoter()
+    test_organization_details()
+    
+    # Print summary
+    print("\n=== New API Tests Summary ===")
+    new_tests = ["user_profile_viewing", "user_search", "event_creation_by_promoter", "organization_details"]
+    for test_name in new_tests:
+        status = "✅ PASS" if test_results[test_name] else "❌ FAIL"
+        print(f"{status} - {test_name}")
+    
+    # Calculate success rate for new tests
+    success_count = sum(1 for test_name in new_tests if test_results[test_name])
+    total_count = len(new_tests)
+    success_rate = (success_count / total_count) * 100
+    
+    print(f"\nNew API tests success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
+
 if __name__ == "__main__":
-    run_all_tests()
+    # Run only the new API tests
+    run_new_api_tests()
