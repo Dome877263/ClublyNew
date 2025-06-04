@@ -544,3 +544,134 @@ export const OrganizationDetailsModal = ({ show, onClose, organization, onViewPr
     </div>
   );
 };
+
+// Edit Event Modal for Capo Promoter
+export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
+  const [eventData, setEventData] = useState({
+    name: '',
+    lineup: '',
+    start_time: ''
+  });
+
+  // Initialize form data when event changes
+  React.useEffect(() => {
+    if (event) {
+      setEventData({
+        name: event.name || '',
+        lineup: Array.isArray(event.lineup) ? event.lineup.join(', ') : (event.lineup || ''),
+        start_time: event.start_time || ''
+      });
+    }
+  }, [event]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const formattedData = {
+      name: eventData.name,
+      lineup: eventData.lineup ? eventData.lineup.split(',').map(dj => dj.trim()) : [],
+      start_time: eventData.start_time
+    };
+    onSubmit(event.id, formattedData);
+  };
+
+  if (!show || !event) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-orange-600 rounded-xl max-w-2xl w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">✏️ Modifica Evento</h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-orange-400 text-2xl font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Event Info */}
+          <div className="bg-gray-800 rounded-lg p-4 mb-6">
+            <h3 className="text-orange-400 font-bold mb-2">📋 Informazioni Evento</h3>
+            <p className="text-gray-300 text-sm"><span className="text-gray-400">Data:</span> {event.date}</p>
+            <p className="text-gray-300 text-sm"><span className="text-gray-400">Locale:</span> {event.location}</p>
+            <p className="text-gray-300 text-sm"><span className="text-gray-400">Organizzazione:</span> {event.organization}</p>
+          </div>
+
+          <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-4 mb-6">
+            <h4 className="text-yellow-400 font-bold text-sm mb-2">⚠️ Permessi di Modifica</h4>
+            <p className="text-yellow-300 text-xs">
+              Come Capo Promoter puoi modificare solo: <strong>Nome evento, Line-up DJ e Orario di inizio</strong>
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <label className="text-orange-400 font-bold block mb-2">📝 Nome Evento</label>
+                <input
+                  type="text"
+                  placeholder="Nome dell'evento"
+                  value={eventData.name}
+                  onChange={(e) => setEventData({...eventData, name: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-orange-400 font-bold block mb-2">🎵 Line-up DJ</label>
+                <input
+                  type="text"
+                  placeholder="DJ set (separati da virgola)"
+                  value={eventData.lineup}
+                  onChange={(e) => setEventData({...eventData, lineup: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                />
+                <p className="text-gray-400 text-xs mt-1">Esempio: DJ Marco, DJ Sara, DJ Alex</p>
+              </div>
+
+              <div>
+                <label className="text-orange-400 font-bold block mb-2">🕘 Orario di Inizio</label>
+                <select
+                  value={eventData.start_time}
+                  onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                  required
+                >
+                  <option value="">Seleziona orario</option>
+                  <option value="18:00">18:00</option>
+                  <option value="19:00">19:00</option>
+                  <option value="20:00">20:00</option>
+                  <option value="21:00">21:00</option>
+                  <option value="22:00">22:00</option>
+                  <option value="22:30">22:30</option>
+                  <option value="23:00">23:00</option>
+                  <option value="23:30">23:30</option>
+                  <option value="00:00">00:00</option>
+                  <option value="01:00">01:00</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="flex space-x-4 pt-4">
+              <button 
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-bold transition-colors"
+              >
+                Annulla
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white py-3 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                💾 Salva Modifiche
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
