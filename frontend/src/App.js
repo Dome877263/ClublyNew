@@ -665,19 +665,19 @@ function App() {
   };
 
   const ClublyFounderDashboard = () => {
-    if (!dashboardData) return <div className="text-center py-8">Caricamento dashboard...</div>;
-
+    if (!dashboardData) return <div className="text-white">Caricamento...</div>;
+    
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">👑 Dashboard Clubly Founder</h2>
-          <p className="text-gray-400">Gestione completa della piattaforma</p>
-        </div>
+        <h1 className="text-3xl font-bold text-white mb-8 flex items-center">
+          👑 Dashboard Clubly Founder
+          <span className="ml-4 text-gray-400 text-lg">Controllo Totale</span>
+        </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Statistiche generali */}
-          <div className="bg-gray-900 border border-purple-600 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-white mb-4">📊 Statistiche</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Statistiche */}
+          <div className="bg-gray-900 border border-gold-500 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">📊 Statistiche Piattaforma</h3>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-gray-400">Organizzazioni:</span>
@@ -707,14 +707,21 @@ function App() {
             <h3 className="text-xl font-bold text-white mb-4">🏢 Organizzazioni</h3>
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {dashboardData.organizations?.map(org => (
-                <div key={org.id} className="bg-gray-800 rounded-lg p-3">
+                <div 
+                  key={org.id} 
+                  onClick={() => viewOrganizationDetails(org.id)}
+                  className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors"
+                >
                   <p className="text-white font-bold">{org.name}</p>
                   <p className="text-gray-400 text-sm">📍 {org.location}</p>
                 </div>
               ))}
             </div>
-            <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors w-full">
-              Crea Organizzazione
+            <button 
+              onClick={() => setShowCreateOrganization(true)}
+              className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+            >
+              ➕ Crea Organizzazione
             </button>
           </div>
 
@@ -726,15 +733,35 @@ function App() {
                 <p className="text-white font-bold">Capi Promoter</p>
                 <div className="mt-2 space-y-1">
                   {dashboardData.users?.capo_promoter?.slice(0, 3).map(user => (
-                    <p key={user.id} className="text-gray-400 text-sm">• {user.nome} {user.cognome}</p>
+                    <div 
+                      key={user.id}
+                      onClick={() => viewUserProfile(user.id)}
+                      className="text-gray-400 text-sm cursor-pointer hover:text-white transition-colors"
+                    >
+                      • @{user.username} - {user.nome} {user.cognome}
+                    </div>
                   ))}
                 </div>
               </div>
-              <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors w-full">
-                Crea Capo Promoter
+              <button 
+                onClick={() => setShowCreateCapoPromoter(true)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+              >
+                ➕ Crea Capo Promoter
               </button>
             </div>
           </div>
+        </div>
+
+        {/* User Search Section */}
+        <div className="mt-8 bg-gray-900 border border-purple-600 rounded-lg p-6">
+          <h3 className="text-xl font-bold text-white mb-4">🔍 Ricerca Utenti</h3>
+          <button 
+            onClick={() => setShowUserSearch(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition-colors"
+          >
+            Cerca Utenti Clubly
+          </button>
         </div>
 
         {/* Eventi recenti */}
