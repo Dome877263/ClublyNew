@@ -80,6 +80,12 @@ class TemporaryCredentials(BaseModel):
     ruolo: str  # "promoter" or "capo_promoter"
     organization: Optional[str] = None
 
+class UserSearch(BaseModel):
+    search_term: Optional[str] = ""
+    role_filter: Optional[str] = None
+    creation_date_from: Optional[str] = None
+    creation_date_to: Optional[str] = None
+
 class Event(BaseModel):
     name: str
     date: str
