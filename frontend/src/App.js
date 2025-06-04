@@ -1603,6 +1603,41 @@ function App() {
       {showUserSetup && <UserSetupModal />}
       {showBooking && selectedEvent && <BookingModal />}
       {showChat && <ChatModal />}
+      {showUserProfile && <UserProfileModal />}
+      
+      {/* New Modals */}
+      <UserSearchModal 
+        show={showUserSearch}
+        onClose={() => setShowUserSearch(false)}
+        onSearch={searchUsers}
+        searchResults={searchResults}
+        onViewProfile={viewUserProfile}
+      />
+      
+      <CreateEventModal 
+        show={showCreateEvent}
+        onClose={() => setShowCreateEvent(false)}
+        onSubmit={createEventByPromoter}
+      />
+      
+      <CreateOrganizationModal 
+        show={showCreateOrganization}
+        onClose={() => setShowCreateOrganization(false)}
+        onSubmit={createOrganization}
+      />
+      
+      <CreateCapoPromoterModal 
+        show={showCreateCapoPromoter}
+        onClose={() => setShowCreateCapoPromoter(false)}
+        onSubmit={createCapoPromoter}
+      />
+      
+      <OrganizationDetailsModal 
+        show={showOrganizationDetails}
+        onClose={() => setShowOrganizationDetails(false)}
+        organization={selectedOrganization}
+        onViewProfile={viewUserProfile}
+      />
     </div>
   );
 }
