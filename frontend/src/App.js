@@ -65,12 +65,12 @@ function App() {
     }
   };
 
-  const handleLogin = async (email, password) => {
+  const handleLogin = async (loginData, password) => {
     try {
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ login: loginData, password })
       });
       
       if (response.ok) {
@@ -78,7 +78,13 @@ function App() {
         localStorage.setItem('token', data.token);
         setCurrentUser(data.user);
         setShowAuth(false);
-        setShowBooking(true);
+        
+        // Check if user needs setup
+        if (data.user.needs_setup) {
+          setShowUserSetup(true);
+        } else if (selectedEvent) {
+          setShowBooking(true);
+        }
       } else {
         alert('Credenziali non valide');
       }
