@@ -1804,7 +1804,7 @@ function App() {
       <CreateEventModal 
         show={showCreateEvent}
         onClose={() => setShowCreateEvent(false)}
-        onSubmit={createEventByPromoter}
+        onSubmit={currentUser?.ruolo === 'clubly_founder' ? createEventByFounder : createEventByPromoter}
       />
       
       <EditEventModal 
