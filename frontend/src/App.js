@@ -33,6 +33,8 @@ function App() {
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [showEditEvent, setShowEditEvent] = useState(false);
+  const [selectedEventToEdit, setSelectedEventToEdit] = useState(null);
   const [showCreateOrganization, setShowCreateOrganization] = useState(false);
   const [showCreateCapoPromoter, setShowCreateCapoPromoter] = useState(false);
   const [showOrganizationDetails, setShowOrganizationDetails] = useState(false);
