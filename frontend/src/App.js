@@ -521,6 +521,114 @@ function App() {
     );
   };
 
+  const UserSetupModal = () => {
+    const [setupData, setSetupData] = useState({
+      cognome: '', username: '', data_nascita: '', citta: '', profile_image: ''
+    });
+    const [imagePreview, setImagePreview] = useState(null);
+
+    const handleImageUpload = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setSetupData({...setupData, profile_image: reader.result});
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      handleUserSetup(setupData);
+    };
+
+    return (
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-900 border border-red-600 rounded-xl max-w-md w-full shadow-2xl">
+          <div className="p-6">
+            <div className="text-center mb-6">
+              <h2 className="text-white text-2xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+                Completa il tuo Profilo
+              </h2>
+              <p className="text-gray-400 text-sm mt-2">
+                Ciao {currentUser?.nome}! Completa le informazioni per accedere alla piattaforma.
+              </p>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input
+                type="text"
+                placeholder="Cognome"
+                value={setupData.cognome}
+                onChange={(e) => setSetupData({...setupData, cognome: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                required
+              />
+              
+              <input
+                type="text"
+                placeholder="Username"
+                value={setupData.username}
+                onChange={(e) => setSetupData({...setupData, username: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                required
+              />
+              
+              <div>
+                <label className="text-white text-sm font-medium block mb-1">Data di Nascita</label>
+                <input
+                  type="date"
+                  value={setupData.data_nascita}
+                  onChange={(e) => setSetupData({...setupData, data_nascita: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  required
+                />
+              </div>
+              
+              <input
+                type="text"
+                placeholder="Città"
+                value={setupData.citta}
+                onChange={(e) => setSetupData({...setupData, citta: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                required
+              />
+              
+              {/* Profile Image Upload */}
+              <div className="space-y-2">
+                <label className="text-white text-sm font-medium">Foto Profilo (Opzionale)</label>
+                <div className="flex items-center space-x-4">
+                  {imagePreview && (
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="w-16 h-16 rounded-full object-cover border-2 border-red-500"
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
+                  />
+                </div>
+              </div>
+              
+              <button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-lg font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                🎯 Completa Configurazione
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const BookingModal = () => (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
       <div className="bg-gray-900 border border-red-600 rounded-lg max-w-md w-full">
