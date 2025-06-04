@@ -39,6 +39,46 @@ function App() {
     }
   }, [currentView, currentUser]);
 
+  const fetchDashboardData = async () => {
+    if (!currentUser || currentView === 'main') return;
+    
+    try {
+      let endpoint;
+      switch (currentView) {
+        case 'promoter':
+          endpoint = '/api/dashboard/promoter';
+          break;
+        case 'capo-promoter':
+          endpoint = '/api/dashboard/capo-promoter';
+          break;
+        case 'clubly-founder':
+          endpoint = '/api/dashboard/clubly-founder';
+          break;
+        default:
+          return;
+      }
+      
+      const response = await fetch(`${backendUrl}${endpoint}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setDashboardData(data);
+      } else {
+        console.error('Failed to fetch dashboard data');
+      }
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser && currentView !== 'main') {
+      fetchDashboardData();
+    }
+  }, [currentView, currentUser]);
+
   const checkAuthStatus = async () => {
     const token = localStorage.getItem('token');
     if (token) {
