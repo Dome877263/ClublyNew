@@ -19,6 +19,17 @@ function App() {
   const [currentView, setCurrentView] = useState('main'); // main, promoter, capo-promoter, clubly-founder
   const [showUserSetup, setShowUserSetup] = useState(false);
   const [dashboardData, setDashboardData] = useState(null);
+  
+  // New states for enhanced features
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [selectedUserProfile, setSelectedUserProfile] = useState(null);
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [showCreateEvent, setShowCreateEvent] = useState(false);
+  const [showCreateOrganization, setShowCreateOrganization] = useState(false);
+  const [showCreateCapoPromoter, setShowCreateCapoPromoter] = useState(false);
+  const [showOrganizationDetails, setShowOrganizationDetails] = useState(false);
+  const [selectedOrganization, setSelectedOrganization] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
