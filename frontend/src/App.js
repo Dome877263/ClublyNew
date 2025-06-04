@@ -1766,6 +1766,16 @@ function App() {
         onSubmit={createEventByPromoter}
       />
       
+      <EditEventModal 
+        show={showEditEvent}
+        onClose={() => {
+          setShowEditEvent(false);
+          setSelectedEventToEdit(null);
+        }}
+        event={selectedEventToEdit}
+        onSubmit={updateEvent}
+      />
+      
       <CreateOrganizationModal 
         show={showCreateOrganization}
         onClose={() => setShowCreateOrganization(false)}
