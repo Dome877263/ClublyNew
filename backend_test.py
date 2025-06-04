@@ -9,7 +9,7 @@ class ClublyAPITester(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(ClublyAPITester, self).__init__(*args, **kwargs)
         # Get backend URL from environment or use default
-        self.base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://f6498984-fefd-41c2-8ae2-7386f674ba3d.preview.emergentagent.com')
+        self.base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://fa498a36-0d1e-4a17-8617-8d653e8d39bb.preview.emergentagent.com')
         self.token = None
         self.user_id = None
         self.test_event_id = None
