@@ -27,7 +27,11 @@ test_results = {
     "user_profile_viewing": False,
     "user_search": False,
     "event_creation_by_promoter": False,
-    "organization_details": False
+    "organization_details": False,
+    # Capo promoter event update tests
+    "capo_promoter_event_update_allowed_fields": False,
+    "capo_promoter_event_update_restricted_fields": False,
+    "promoter_event_update_authorization": False
 }
 
 # Store tokens for different user roles
