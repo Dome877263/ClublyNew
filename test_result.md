@@ -454,10 +454,22 @@ backend:
         agent: "testing"
         comment: "Test completato con successo. L'API /api/organizations/{org_id} restituisce correttamente i dettagli dell'organizzazione, inclusi i membri e gli eventi associati all'organizzazione."
 
+  - task: "Capo Promoter Event Update API"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API PUT /api/events/{event_id} permette al capo_promoter di modificare solo i campi consentiti (name, lineup, start_time) e impedisce la modifica di campi ristretti (location, date). Verificato anche che solo capo_promoter e clubly_founder possono modificare eventi, mentre i promoter normali ricevono un errore 403 Forbidden."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
   run_ui: false
 
 test_plan:
@@ -466,6 +478,7 @@ test_plan:
     - "Ricerca utenti con filtri"
     - "Creazione eventi da promoter"
     - "Dettagli organizzazione"
+    - "Capo Promoter Event Update API"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -475,3 +488,5 @@ agent_communication:
     message: "Ho completato tutti i test delle API backend richiesti. Tutti i test sono passati con successo. Ho creato un file backend_test.py che testa tutte le API richieste. I risultati dettagliati sono stati aggiunti al file test_result.md."
   - agent: "testing"
     message: "Ho testato con successo le nuove API backend aggiunte per Clubly. Tutte le API funzionano correttamente: visualizzazione profilo utente, ricerca utenti con filtri, creazione eventi da promoter e dettagli organizzazione. I test hanno verificato che il login funziona e restituisce il campo biografia, la ricerca utenti funziona con vari filtri, la creazione eventi da promoter funziona correttamente e l'API organizzazioni restituisce membri ed eventi associati."
+  - agent: "testing"
+    message: "Ho testato con successo le modifiche implementate per il capo promoter. L'API PUT /api/events/{event_id} funziona correttamente permettendo al capo_promoter di modificare solo i campi consentiti (name, lineup, start_time) e impedendo la modifica di campi ristretti (location, date). Ho verificato anche che solo capo_promoter e clubly_founder possono modificare eventi, mentre i promoter normali ricevono un errore 403 Forbidden. Tutti i test sono passati con successo."
