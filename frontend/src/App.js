@@ -324,6 +324,11 @@ function App() {
     }
   };
 
+  const openEditEvent = (event) => {
+    setSelectedEventToEdit(event);
+    setShowEditEvent(true);
+  };
+
   const searchUsers = async (searchParams) => {
     try {
       const response = await fetch(`${backendUrl}/api/users/search`, {
