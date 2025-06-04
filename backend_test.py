@@ -597,6 +597,248 @@ def test_organization_details():
     
     return test_results["organization_details"]
 
+# Test capo promoter event update API - allowed fields
+def test_capo_promoter_event_update_allowed_fields():
+    print("\n=== Testing capo promoter event update API - allowed fields ===")
+    
+    # First, we need to login as capo_promoter
+    if not tokens["capo_promoter"]:
+        test_login_with_capo_promoter()
+    
+    if not tokens["capo_promoter"]:
+        print("❌ Cannot test event update without capo_promoter token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['capo_promoter']}"
+    }
+    
+    # Get capo promoter's organization
+    response = requests.get(f"{BACKEND_URL}/dashboard/capo-promoter", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get capo promoter dashboard. Status code: {response.status_code}")
+        return False
+    
+    dashboard_data = response.json()
+    organization = dashboard_data.get("organization")
+    
+    # Get events for this organization
+    response = requests.get(f"{BACKEND_URL}/organizations/{organization}/events", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get organization events. Status code: {response.status_code}")
+        return False
+    
+    events = response.json()
+    
+    if not events:
+        # If no events exist, create one
+        print("No events found for this organization. Creating a test event...")
+        test_event_creation_by_promoter()
+        
+        # Try to get events again
+        response = requests.get(f"{BACKEND_URL}/organizations/{organization}/events", headers=headers)
+        if response.status_code != 200 or not response.json():
+            print("❌ Could not create or find any events for testing")
+            return False
+        
+        events = response.json()
+    
+    # Use the first event for testing
+    event_id = events[0]["id"]
+    original_name = events[0]["name"]
+    
+    # Update allowed fields: name, lineup, start_time
+    updated_name = f"{original_name} - Updated {random_string(4)}"
+    updated_lineup = ["DJ Test Updated", "DJ Sample Updated"]
+    updated_start_time = "23:30"
+    
+    payload = {
+        "name": updated_name,
+        "lineup": updated_lineup,
+        "start_time": updated_start_time
+    }
+    
+    response = requests.put(f"{BACKEND_URL}/events/{event_id}", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        print(f"✅ Event update with allowed fields successful")
+        
+        # Verify the update by getting the event details
+        response = requests.get(f"{BACKEND_URL}/events/{event_id}", headers=headers)
+        if response.status_code == 200:
+            updated_event = response.json()
+            
+            name_updated = updated_event["name"] == updated_name
+            lineup_updated = updated_event["lineup"] == updated_lineup
+            start_time_updated = updated_event["start_time"] == updated_start_time
+            
+            print(f"   Name updated: {'Yes' if name_updated else 'No'}")
+            print(f"   Lineup updated: {'Yes' if lineup_updated else 'No'}")
+            print(f"   Start time updated: {'Yes' if start_time_updated else 'No'}")
+            
+            test_results["capo_promoter_event_update_allowed_fields"] = name_updated and lineup_updated and start_time_updated
+        else:
+            print(f"❌ Could not verify event update. Status code: {response.status_code}")
+    else:
+        print(f"❌ Event update with allowed fields failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["capo_promoter_event_update_allowed_fields"]
+
+# Test capo promoter event update API - restricted fields
+def test_capo_promoter_event_update_restricted_fields():
+    print("\n=== Testing capo promoter event update API - restricted fields ===")
+    
+    # First, we need to login as capo_promoter
+    if not tokens["capo_promoter"]:
+        test_login_with_capo_promoter()
+    
+    if not tokens["capo_promoter"]:
+        print("❌ Cannot test event update without capo_promoter token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['capo_promoter']}"
+    }
+    
+    # Get capo promoter's organization
+    response = requests.get(f"{BACKEND_URL}/dashboard/capo-promoter", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get capo promoter dashboard. Status code: {response.status_code}")
+        return False
+    
+    dashboard_data = response.json()
+    organization = dashboard_data.get("organization")
+    
+    # Get events for this organization
+    response = requests.get(f"{BACKEND_URL}/organizations/{organization}/events", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get organization events. Status code: {response.status_code}")
+        return False
+    
+    events = response.json()
+    
+    if not events:
+        print("❌ No events found for testing")
+        return False
+    
+    # Use the first event for testing
+    event_id = events[0]["id"]
+    original_location = events[0]["location"]
+    original_date = events[0]["date"]
+    
+    # Try to update restricted fields: location, date
+    tomorrow = (datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d")
+    
+    payload = {
+        "location": "New Test Location",
+        "date": tomorrow
+    }
+    
+    response = requests.put(f"{BACKEND_URL}/events/{event_id}", json=payload, headers=headers)
+    
+    # The update should succeed but the restricted fields should be ignored
+    if response.status_code == 200:
+        print(f"✅ Event update API call successful")
+        
+        # Verify the update by getting the event details
+        response = requests.get(f"{BACKEND_URL}/events/{event_id}", headers=headers)
+        if response.status_code == 200:
+            updated_event = response.json()
+            
+            location_unchanged = updated_event["location"] == original_location
+            date_unchanged = updated_event["date"] == original_date
+            
+            print(f"   Location unchanged: {'Yes' if location_unchanged else 'No'}")
+            print(f"   Date unchanged: {'Yes' if date_unchanged else 'No'}")
+            
+            test_results["capo_promoter_event_update_restricted_fields"] = location_unchanged and date_unchanged
+        else:
+            print(f"❌ Could not verify event update. Status code: {response.status_code}")
+    else:
+        print(f"❌ Event update API call failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["capo_promoter_event_update_restricted_fields"]
+
+# Test promoter event update authorization
+def test_promoter_event_update_authorization():
+    print("\n=== Testing promoter event update authorization ===")
+    
+    # First, we need to create a promoter account or use an existing one
+    # For simplicity, we'll create a temporary promoter
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot create promoter without admin token")
+        return False
+    
+    admin_headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Create temporary promoter
+    temp_email = f"temp_promoter_{random_string()}@test.com"
+    temp_password = "TempPassword123"
+    
+    payload = {
+        "nome": "Temporary",
+        "email": temp_email,
+        "password": temp_password,
+        "ruolo": "promoter",
+        "organization": "Night Events Milano"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=payload, headers=admin_headers)
+    
+    if response.status_code != 200:
+        print(f"❌ Could not create temporary promoter. Status code: {response.status_code}")
+        return False
+    
+    # Login as the temporary promoter
+    login_payload = {
+        "login": temp_email,
+        "password": temp_password
+    }
+    
+    login_response = requests.post(f"{BACKEND_URL}/auth/login", json=login_payload)
+    
+    if login_response.status_code != 200:
+        print(f"❌ Could not login as temporary promoter. Status code: {login_response.status_code}")
+        return False
+    
+    promoter_token = login_response.json().get("token")
+    promoter_headers = {
+        "Authorization": f"Bearer {promoter_token}"
+    }
+    
+    # Get events
+    response = requests.get(f"{BACKEND_URL}/events", headers=promoter_headers)
+    if response.status_code != 200 or not response.json():
+        print(f"❌ Could not get events. Status code: {response.status_code}")
+        return False
+    
+    events = response.json()
+    event_id = events[0]["id"]
+    
+    # Try to update an event as a promoter (should fail)
+    payload = {
+        "name": f"Test Update by Promoter {random_string(4)}"
+    }
+    
+    response = requests.put(f"{BACKEND_URL}/events/{event_id}", json=payload, headers=promoter_headers)
+    
+    # The update should fail with 403 Forbidden
+    if response.status_code == 403:
+        print(f"✅ Promoter correctly denied access to update events (403 Forbidden)")
+        test_results["promoter_event_update_authorization"] = True
+    else:
+        print(f"❌ Promoter authorization test failed. Expected 403, got: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["promoter_event_update_authorization"]
+
 # Run all tests
 def run_all_tests():
     print("\n=== Running all backend API tests ===\n")
