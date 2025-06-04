@@ -101,3 +101,139 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Test backend APIs per il nuovo sistema di autenticazione e dashboard: login con username e email, registrazione con foto profilo, dashboard per promoter/capo-promoter/clubly-founder, API organizzazioni, credenziali temporanee e setup profilo."
+
+backend:
+  - task: "Login con username e email"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. Login funziona correttamente sia con username (admin/admin123) che con email (admin@clubly.it/admin123). Anche il login con capo_promoter (capo_milano/Password1) funziona correttamente."
+
+  - task: "Registrazione con foto profilo"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. La registrazione di un nuovo utente con tutti i campi inclusa la foto profilo funziona correttamente. L'API restituisce il token JWT e i dati dell'utente."
+
+  - task: "API dashboard promoter"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/dashboard/promoter restituisce correttamente i dati dell'organizzazione, eventi, membri e chat attive."
+
+  - task: "API dashboard capo-promoter"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/dashboard/capo-promoter restituisce correttamente i dati dell'organizzazione, eventi, membri, chat attive e informazioni sui permessi aggiuntivi."
+
+  - task: "API dashboard clubly-founder"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/dashboard/clubly-founder restituisce correttamente i dati di tutte le organizzazioni, eventi e utenti suddivisi per ruolo."
+
+  - task: "API organizzazioni"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/organizations restituisce correttamente l'elenco delle organizzazioni."
+
+  - task: "Creazione nuova organizzazione"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API per la creazione di una nuova organizzazione funziona correttamente. L'organizzazione viene creata nel database e l'API restituisce l'ID dell'organizzazione."
+
+  - task: "Creazione credenziali temporanee per promoter"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/users/temporary-credentials crea correttamente un account temporaneo per un promoter. È possibile effettuare il login con le credenziali temporanee."
+
+  - task: "Completamento setup profilo"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/user/setup permette di completare il profilo di un utente con credenziali temporanee, aggiungendo cognome, username, data di nascita, città e immagine del profilo."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Login con username e email"
+    - "Registrazione con foto profilo"
+    - "API dashboard promoter"
+    - "API dashboard capo-promoter"
+    - "API dashboard clubly-founder"
+    - "API organizzazioni"
+    - "Creazione nuova organizzazione"
+    - "Creazione credenziali temporanee per promoter"
+    - "Completamento setup profilo"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "testing"
+    message: "Ho completato tutti i test delle API backend richiesti. Tutti i test sono passati con successo. Ho creato un file backend_test.py che testa tutte le API richieste. I risultati dettagliati sono stati aggiunti al file test_result.md."
