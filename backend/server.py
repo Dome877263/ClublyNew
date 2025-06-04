@@ -345,6 +345,8 @@ async def register(user: UserRegister):
         "ruolo": user.ruolo,
         "data_nascita": user.data_nascita,
         "citta": user.citta,
+        "profile_image": user.profile_image,
+        "needs_setup": False,
         "created_at": datetime.utcnow()
     }
     
@@ -368,7 +370,9 @@ async def register(user: UserRegister):
             "email": user_data["email"],
             "username": user_data["username"],
             "ruolo": user_data["ruolo"],
-            "citta": user_data["citta"]
+            "citta": user_data["citta"],
+            "profile_image": user_data["profile_image"],
+            "needs_setup": user_data["needs_setup"]
         }
     }
 
