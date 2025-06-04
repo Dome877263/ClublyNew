@@ -1,389 +1,412 @@
 import requests
-import unittest
 import json
+import base64
 import os
-import sys
-from datetime import datetime
+import time
+import random
+import string
 
-class ClublyAPITester(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super(ClublyAPITester, self).__init__(*args, **kwargs)
-        # Get backend URL from environment or use default
-        self.base_url = os.environ.get('REACT_APP_BACKEND_URL', 'https://fa498a36-0d1e-4a17-8617-8d653e8d39bb.preview.emergentagent.com')
-        self.token = None
-        self.user_id = None
-        self.test_event_id = None
-        self.test_booking_id = None
-        self.test_chat_id = None
+# Get the backend URL from the frontend .env file
+BACKEND_URL = "https://fa498a36-0d1e-4a17-8617-8d653e8d39bb.preview.emergentagent.com/api"
+
+# Test results
+test_results = {
+    "login_username": False,
+    "login_email": False,
+    "login_capo_promoter": False,
+    "register_with_profile_photo": False,
+    "dashboard_promoter": False,
+    "dashboard_capo_promoter": False,
+    "dashboard_clubly_founder": False,
+    "get_organizations": False,
+    "create_organization": False,
+    "create_temporary_credentials": False,
+    "complete_user_setup": False
+}
+
+# Store tokens for different user roles
+tokens = {
+    "admin": None,
+    "capo_promoter": None,
+    "promoter": None,
+    "new_user": None,
+    "temp_user": None
+}
+
+# Helper function to generate a random string
+def random_string(length=8):
+    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
+
+# Helper function to create a fake base64 image
+def create_fake_base64_image():
+    # This is a tiny 1x1 transparent PNG image
+    return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+
+# Test login with username
+def test_login_with_username():
+    print("\n=== Testing login with username ===")
+    
+    payload = {
+        "login": "admin",
+        "password": "admin123"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
+    
+    if response.status_code == 200:
+        data = response.json()
+        tokens["admin"] = data.get("token")
+        print(f"✅ Login successful with username. User role: {data['user']['ruolo']}")
+        test_results["login_username"] = True
+    else:
+        print(f"❌ Login failed with username. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["login_username"]
+
+# Test login with email
+def test_login_with_email():
+    print("\n=== Testing login with email ===")
+    
+    payload = {
+        "login": "admin@clubly.it",
+        "password": "admin123"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
+    
+    if response.status_code == 200:
+        data = response.json()
+        tokens["admin"] = data.get("token")
+        print(f"✅ Login successful with email. User role: {data['user']['ruolo']}")
+        test_results["login_email"] = True
+    else:
+        print(f"❌ Login failed with email. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["login_email"]
+
+# Test login with capo promoter
+def test_login_with_capo_promoter():
+    print("\n=== Testing login with capo promoter ===")
+    
+    payload = {
+        "login": "capo_milano",
+        "password": "Password1"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
+    
+    if response.status_code == 200:
+        data = response.json()
+        tokens["capo_promoter"] = data.get("token")
+        print(f"✅ Login successful with capo promoter. User role: {data['user']['ruolo']}")
+        test_results["login_capo_promoter"] = True
+    else:
+        print(f"❌ Login failed with capo promoter. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["login_capo_promoter"]
+
+# Test registration with profile photo
+def test_register_with_profile_photo():
+    print("\n=== Testing registration with profile photo ===")
+    
+    # Generate random user data
+    username = f"test_user_{random_string()}"
+    email = f"{username}@test.com"
+    
+    payload = {
+        "nome": "Test",
+        "cognome": "User",
+        "email": email,
+        "username": username,
+        "password": "TestPassword123",
+        "data_nascita": "1990-01-01",
+        "citta": "Test City",
+        "ruolo": "cliente",
+        "profile_image": create_fake_base64_image()
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/auth/register", json=payload)
+    
+    if response.status_code == 200:
+        data = response.json()
+        tokens["new_user"] = data.get("token")
+        print(f"✅ Registration successful with profile photo. User: {username}")
+        test_results["register_with_profile_photo"] = True
+    else:
+        print(f"❌ Registration failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["register_with_profile_photo"]
+
+# Test promoter dashboard API
+def test_promoter_dashboard():
+    print("\n=== Testing promoter dashboard API ===")
+    
+    # First, we need to login as a promoter or capo_promoter
+    if not tokens["capo_promoter"]:
+        test_login_with_capo_promoter()
+    
+    if not tokens["capo_promoter"]:
+        print("❌ Cannot test promoter dashboard without capo_promoter token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['capo_promoter']}"
+    }
+    
+    response = requests.get(f"{BACKEND_URL}/dashboard/promoter", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Promoter dashboard API successful. Organization: {data.get('organization')}")
+        test_results["dashboard_promoter"] = True
+    else:
+        print(f"❌ Promoter dashboard API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["dashboard_promoter"]
+
+# Test capo promoter dashboard API
+def test_capo_promoter_dashboard():
+    print("\n=== Testing capo promoter dashboard API ===")
+    
+    # First, we need to login as a capo_promoter
+    if not tokens["capo_promoter"]:
+        test_login_with_capo_promoter()
+    
+    if not tokens["capo_promoter"]:
+        print("❌ Cannot test capo promoter dashboard without capo_promoter token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['capo_promoter']}"
+    }
+    
+    response = requests.get(f"{BACKEND_URL}/dashboard/capo-promoter", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Capo promoter dashboard API successful. Can create promoters: {data.get('can_create_promoters')}")
+        test_results["dashboard_capo_promoter"] = True
+    else:
+        print(f"❌ Capo promoter dashboard API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["dashboard_capo_promoter"]
+
+# Test clubly founder dashboard API
+def test_clubly_founder_dashboard():
+    print("\n=== Testing clubly founder dashboard API ===")
+    
+    # First, we need to login as admin (clubly_founder)
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot test clubly founder dashboard without admin token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    response = requests.get(f"{BACKEND_URL}/dashboard/clubly-founder", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Clubly founder dashboard API successful. Organizations count: {len(data.get('organizations', []))}")
+        test_results["dashboard_clubly_founder"] = True
+    else:
+        print(f"❌ Clubly founder dashboard API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["dashboard_clubly_founder"]
+
+# Test get organizations API
+def test_get_organizations():
+    print("\n=== Testing get organizations API ===")
+    
+    response = requests.get(f"{BACKEND_URL}/organizations")
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Get organizations API successful. Organizations count: {len(data)}")
+        test_results["get_organizations"] = True
+    else:
+        print(f"❌ Get organizations API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["get_organizations"]
+
+# Test create organization API
+def test_create_organization():
+    print("\n=== Testing create organization API ===")
+    
+    # First, we need to login as admin (clubly_founder)
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot test create organization without admin token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Generate a random organization name
+    org_name = f"Test Organization {random_string()}"
+    
+    payload = {
+        "name": org_name,
+        "location": "Test Location",
+        "capo_promoter_username": "capo_milano"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/organizations", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Create organization API successful. Organization ID: {data.get('organization_id')}")
+        test_results["create_organization"] = True
+    else:
+        print(f"❌ Create organization API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["create_organization"]
+
+# Test create temporary credentials API
+def test_create_temporary_credentials():
+    print("\n=== Testing create temporary credentials API ===")
+    
+    # First, we need to login as admin (clubly_founder)
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot test create temporary credentials without admin token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Generate random user data
+    temp_email = f"temp_user_{random_string()}@test.com"
+    
+    payload = {
+        "nome": "Temporary",
+        "email": temp_email,
+        "password": "TempPassword123",
+        "ruolo": "promoter",
+        "organization": "Night Events Milano"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Create temporary credentials API successful. User ID: {data.get('user_id')}")
         
-        # Test user data
-        self.test_user = {
-            "nome": "Test",
-            "cognome": "User",
-            "email": f"test{datetime.now().strftime('%Y%m%d%H%M%S')}@test.it",
-            "username": f"testuser{datetime.now().strftime('%Y%m%d%H%M%S')}",
-            "password": "Test123!",
-            "data_nascita": "1990-01-01",
-            "citta": "Milano"
+        # Now login with the temporary credentials
+        login_payload = {
+            "login": temp_email,
+            "password": "TempPassword123"
         }
         
-        # Admin credentials
-        self.admin_credentials = {
-            "email": "admin@clubly.it",
-            "password": "admin123"
-        }
+        login_response = requests.post(f"{BACKEND_URL}/auth/login", json=login_payload)
+        
+        if login_response.status_code == 200:
+            login_data = login_response.json()
+            tokens["temp_user"] = login_data.get("token")
+            print(f"✅ Login with temporary credentials successful")
+            test_results["create_temporary_credentials"] = True
+        else:
+            print(f"❌ Login with temporary credentials failed. Status code: {login_response.status_code}")
+            print(f"Response: {login_response.text}")
+    else:
+        print(f"❌ Create temporary credentials API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["create_temporary_credentials"]
 
-    def setUp(self):
-        print(f"\n🔍 Testing Clubly API at {self.base_url}")
+# Test complete user setup API
+def test_complete_user_setup():
+    print("\n=== Testing complete user setup API ===")
+    
+    # First, we need to have a temporary user token
+    if not tokens["temp_user"]:
+        test_create_temporary_credentials()
+    
+    if not tokens["temp_user"]:
+        print("❌ Cannot test complete user setup without temporary user token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['temp_user']}"
+    }
+    
+    # Generate random username
+    username = f"setup_user_{random_string()}"
+    
+    payload = {
+        "cognome": "Setup User",
+        "username": username,
+        "data_nascita": "1995-05-05",
+        "citta": "Setup City",
+        "profile_image": create_fake_base64_image()
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/user/setup", json=payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Complete user setup API successful. Username: {data['user']['username']}")
+        test_results["complete_user_setup"] = True
+    else:
+        print(f"❌ Complete user setup API failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["complete_user_setup"]
 
-    def test_01_api_root(self):
-        """Test API root endpoint"""
-        print("\n🔍 Testing API root endpoint...")
-        try:
-            # The root endpoint is at /api/ not /api
-            response = requests.get(f"{self.base_url}/api/")
-            # Accept 200 or 404 as the root endpoint might not be explicitly defined
-            self.assertIn(response.status_code, [200, 404])
-            print("✅ API root endpoint is accessible")
-        except Exception as e:
-            print(f"❌ API root endpoint test failed: {str(e)}")
-            self.fail(f"API root endpoint test failed: {str(e)}")
-
-    def test_02_get_events(self):
-        """Test getting events list"""
-        print("\n🔍 Testing events list endpoint...")
-        try:
-            response = requests.get(f"{self.base_url}/api/events")
-            self.assertEqual(response.status_code, 200)
-            events = response.json()
-            self.assertIsInstance(events, list)
-            
-            if len(events) > 0:
-                self.test_event_id = events[0]['id']
-                print(f"✅ Events list endpoint returned {len(events)} events")
-                print(f"   First event: {events[0]['name']}")
-                
-                # Check max_party_size for specific events
-                neon_nights = next((e for e in events if "NEON NIGHTS" in e['name']), None)
-                red_passion = next((e for e in events if "RED PASSION" in e['name']), None)
-                techno_underground = next((e for e in events if "TECHNO UNDERGROUND" in e['name']), None)
-                
-                if neon_nights:
-                    self.assertEqual(neon_nights['max_party_size'], 8, 
-                                    f"NEON NIGHTS should have max_party_size=8, got {neon_nights['max_party_size']}")
-                    print(f"✅ NEON NIGHTS has correct max_party_size: {neon_nights['max_party_size']}")
-                
-                if red_passion:
-                    self.assertEqual(red_passion['max_party_size'], 6, 
-                                    f"RED PASSION should have max_party_size=6, got {red_passion['max_party_size']}")
-                    print(f"✅ RED PASSION has correct max_party_size: {red_passion['max_party_size']}")
-                
-                if techno_underground:
-                    self.assertEqual(techno_underground['max_party_size'], 12, 
-                                    f"TECHNO UNDERGROUND should have max_party_size=12, got {techno_underground['max_party_size']}")
-                    print(f"✅ TECHNO UNDERGROUND has correct max_party_size: {techno_underground['max_party_size']}")
-            else:
-                print("⚠️ Events list endpoint returned 0 events")
-        except Exception as e:
-            print(f"❌ Events list endpoint test failed: {str(e)}")
-            self.fail(f"Events list endpoint test failed: {str(e)}")
-
-    def test_03_get_event_details(self):
-        """Test getting event details"""
-        if not self.test_event_id:
-            self.skipTest("No event ID available from previous test")
-            
-        print(f"\n🔍 Testing event details endpoint for event ID: {self.test_event_id}...")
-        try:
-            response = requests.get(f"{self.base_url}/api/events/{self.test_event_id}")
-            self.assertEqual(response.status_code, 200)
-            event = response.json()
-            self.assertEqual(event['id'], self.test_event_id)
-            
-            # Check if max_party_size field exists
-            self.assertIn('max_party_size', event, "max_party_size field is missing in event data")
-            self.assertIsInstance(event['max_party_size'], int, "max_party_size should be an integer")
-            
-            print(f"✅ Event details endpoint returned data for '{event['name']}'")
-            print(f"   Event max_party_size: {event['max_party_size']}")
-        except Exception as e:
-            print(f"❌ Event details endpoint test failed: {str(e)}")
-            self.fail(f"Event details endpoint test failed: {str(e)}")
-
-    def test_04_admin_login(self):
-        """Test admin login"""
-        print("\n🔍 Testing admin login...")
-        try:
-            response = requests.post(
-                f"{self.base_url}/api/auth/login",
-                json=self.admin_credentials
-            )
-            self.assertEqual(response.status_code, 200)
-            data = response.json()
-            self.assertIn('token', data)
-            self.assertIn('user', data)
-            # Save admin token for later tests
-            self.token = data['token']
-            print(f"✅ Admin login successful for {self.admin_credentials['email']}")
-        except Exception as e:
-            print(f"❌ Admin login test failed: {str(e)}")
-            self.fail(f"Admin login test failed: {str(e)}")
-
-    def test_05_user_registration(self):
-        """Test user registration"""
-        print("\n🔍 Testing user registration...")
-        try:
-            response = requests.post(
-                f"{self.base_url}/api/auth/register",
-                json=self.test_user
-            )
-            self.assertEqual(response.status_code, 200)
-            data = response.json()
-            self.assertIn('token', data)
-            self.assertIn('user', data)
-            self.token = data['token']
-            self.user_id = data['user']['id']
-            print(f"✅ User registration successful for {self.test_user['email']}")
-        except Exception as e:
-            print(f"❌ User registration test failed: {str(e)}")
-            self.fail(f"User registration test failed: {str(e)}")
-
-    def test_06_user_login(self):
-        """Test user login"""
-        print("\n🔍 Testing user login...")
-        try:
-            response = requests.post(
-                f"{self.base_url}/api/auth/login",
-                json={
-                    "email": self.test_user['email'],
-                    "password": self.test_user['password']
-                }
-            )
-            self.assertEqual(response.status_code, 200)
-            data = response.json()
-            self.assertIn('token', data)
-            self.assertIn('user', data)
-            self.token = data['token']
-            print(f"✅ User login successful for {self.test_user['email']}")
-        except Exception as e:
-            print(f"❌ User login test failed: {str(e)}")
-            self.fail(f"User login test failed: {str(e)}")
-
-    def test_07_get_user_profile(self):
-        """Test getting user profile"""
-        if not self.token:
-            self.skipTest("No token available from previous test")
-            
-        print("\n🔍 Testing user profile endpoint...")
-        try:
-            response = requests.get(
-                f"{self.base_url}/api/user/profile",
-                headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.assertEqual(response.status_code, 200)
-            user = response.json()
-            self.assertEqual(user['email'], self.test_user['email'])
-            print(f"✅ User profile endpoint returned data for {user['email']}")
-        except Exception as e:
-            print(f"❌ User profile endpoint test failed: {str(e)}")
-            self.fail(f"User profile endpoint test failed: {str(e)}")
-
-    def test_08_create_booking(self):
-        """Test creating a booking"""
-        if not self.token or not self.test_event_id:
-            self.skipTest("No token or event ID available from previous tests")
-            
-        print("\n🔍 Testing booking creation...")
-        try:
-            booking_data = {
-                "event_id": self.test_event_id,
-                "booking_type": "lista",
-                "party_size": 2
-            }
-            
-            response = requests.post(
-                f"{self.base_url}/api/bookings",
-                json=booking_data,
-                headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.assertEqual(response.status_code, 200)
-            data = response.json()
-            self.assertIn('booking_id', data)
-            self.test_booking_id = data['booking_id']
-            self.test_chat_id = data.get('chat_id')
-            
-            # Verify that a chat_id is returned
-            self.assertIsNotNone(self.test_chat_id, "No chat_id returned from booking creation")
-            
-            print(f"✅ Booking created successfully with ID: {self.test_booking_id}")
-            print(f"✅ Chat created automatically with ID: {self.test_chat_id}")
-        except Exception as e:
-            print(f"❌ Booking creation test failed: {str(e)}")
-            self.fail(f"Booking creation test failed: {str(e)}")
-
-    def test_09_get_user_bookings(self):
-        """Test getting user bookings"""
-        if not self.token:
-            self.skipTest("No token available from previous test")
-            
-        print("\n🔍 Testing user bookings endpoint...")
-        try:
-            response = requests.get(
-                f"{self.base_url}/api/user/bookings",
-                headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.assertEqual(response.status_code, 200)
-            bookings = response.json()
-            self.assertIsInstance(bookings, list)
-            
-            if len(bookings) > 0:
-                print(f"✅ User bookings endpoint returned {len(bookings)} bookings")
-            else:
-                print("⚠️ User bookings endpoint returned 0 bookings")
-        except Exception as e:
-            print(f"❌ User bookings endpoint test failed: {str(e)}")
-            self.fail(f"User bookings endpoint test failed: {str(e)}")
-
-    def test_10_get_user_chats(self):
-        """Test getting user chats"""
-        if not self.token:
-            self.skipTest("No token available from previous test")
-            
-        print("\n🔍 Testing user chats endpoint...")
-        try:
-            response = requests.get(
-                f"{self.base_url}/api/user/chats",
-                headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.assertEqual(response.status_code, 200)
-            chats = response.json()
-            self.assertIsInstance(chats, list)
-            
-            if len(chats) > 0:
-                print(f"✅ User chats endpoint returned {len(chats)} chats")
-                
-                # Verify chat structure
-                chat = chats[0]
-                self.assertIn('id', chat, "Chat is missing 'id' field")
-                self.assertIn('event', chat, "Chat is missing 'event' field")
-                self.assertIn('other_participant', chat, "Chat is missing 'other_participant' field")
-                self.assertIn('last_message', chat, "Chat is missing 'last_message' field")
-                
-                # Verify promoter assignment
-                self.assertIn('nome', chat['other_participant'], "Promoter is missing 'nome' field")
-                print(f"✅ Chat assigned to promoter: {chat['other_participant']['nome']} {chat['other_participant']['cognome']}")
-                
-                # Save chat ID if not already set
-                if not self.test_chat_id:
-                    self.test_chat_id = chat['id']
-            else:
-                print("⚠️ User chats endpoint returned 0 chats")
-        except Exception as e:
-            print(f"❌ User chats endpoint test failed: {str(e)}")
-            self.fail(f"User chats endpoint test failed: {str(e)}")
-
-    def test_11_get_chat_messages(self):
-        """Test getting chat messages"""
-        if not self.token or not self.test_chat_id:
-            self.skipTest("No token or chat ID available from previous tests")
-            
-        print(f"\n🔍 Testing chat messages endpoint for chat ID: {self.test_chat_id}...")
-        try:
-            response = requests.get(
-                f"{self.base_url}/api/chats/{self.test_chat_id}/messages",
-                headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.assertEqual(response.status_code, 200)
-            messages = response.json()
-            self.assertIsInstance(messages, list)
-            
-            if len(messages) > 0:
-                print(f"✅ Chat messages endpoint returned {len(messages)} messages")
-                
-                # Verify automatic message
-                first_message = messages[0]
-                self.assertIn('is_automatic', first_message, "Message is missing 'is_automatic' field")
-                self.assertTrue(first_message.get('is_automatic', False), "First message should be automatic")
-                
-                # Verify message content
-                self.assertIn('message', first_message, "Message is missing 'message' field")
-                message_content = first_message['message']
-                self.assertIn('Nuova prenotazione', message_content, "Automatic message should contain 'Nuova prenotazione'")
-                self.assertIn('Cliente:', message_content, "Automatic message should contain client info")
-                self.assertIn('Evento:', message_content, "Automatic message should contain event info")
-                self.assertIn('Tipo:', message_content, "Automatic message should contain booking type")
-                self.assertIn('Persone:', message_content, "Automatic message should contain party size")
-                
-                print("✅ Automatic message contains all required information")
-                print(f"✅ Message preview: {message_content[:100]}...")
-            else:
-                print("⚠️ Chat messages endpoint returned 0 messages")
-        except Exception as e:
-            print(f"❌ Chat messages endpoint test failed: {str(e)}")
-            self.fail(f"Chat messages endpoint test failed: {str(e)}")
-
-    def test_12_send_chat_message(self):
-        """Test sending a chat message"""
-        if not self.token or not self.test_chat_id:
-            self.skipTest("No token or chat ID available from previous tests")
-            
-        print(f"\n🔍 Testing sending a chat message to chat ID: {self.test_chat_id}...")
-        try:
-            message_data = {
-                "chat_id": self.test_chat_id,
-                "sender_id": self.user_id,
-                "sender_role": "cliente",
-                "message": "Questo è un messaggio di test inviato dall'API test."
-            }
-            
-            response = requests.post(
-                f"{self.base_url}/api/chats/{self.test_chat_id}/messages",
-                json=message_data,
-                headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.assertEqual(response.status_code, 200)
-            data = response.json()
-            self.assertIn('message_id', data)
-            print(f"✅ Message sent successfully with ID: {data['message_id']}")
-            
-            # Verify message was added to chat
-            response = requests.get(
-                f"{self.base_url}/api/chats/{self.test_chat_id}/messages",
-                headers={"Authorization": f"Bearer {self.token}"}
-            )
-            self.assertEqual(response.status_code, 200)
-            messages = response.json()
-            
-            # The last message should be our test message
-            last_message = messages[-1]
-            self.assertEqual(last_message['message'], message_data['message'])
-            self.assertEqual(last_message['sender_id'], self.user_id)
-            print("✅ Message successfully added to chat")
-        except Exception as e:
-            print(f"❌ Sending chat message test failed: {str(e)}")
-            self.fail(f"Sending chat message test failed: {str(e)}")
+# Run all tests
+def run_all_tests():
+    print("\n=== Running all backend API tests ===\n")
+    
+    # Authentication tests
+    test_login_with_username()
+    test_login_with_email()
+    test_login_with_capo_promoter()
+    test_register_with_profile_photo()
+    
+    # Dashboard tests
+    test_promoter_dashboard()
+    test_capo_promoter_dashboard()
+    test_clubly_founder_dashboard()
+    
+    # Organization tests
+    test_get_organizations()
+    test_create_organization()
+    
+    # Temporary credentials and setup tests
+    test_create_temporary_credentials()
+    test_complete_user_setup()
+    
+    # Print summary
+    print("\n=== Test Results Summary ===")
+    for test_name, result in test_results.items():
+        status = "✅ PASS" if result else "❌ FAIL"
+        print(f"{status} - {test_name}")
+    
+    # Calculate overall success rate
+    success_count = sum(1 for result in test_results.values() if result)
+    total_count = len(test_results)
+    success_rate = (success_count / total_count) * 100
+    
+    print(f"\nOverall success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
 
 if __name__ == "__main__":
-    # Create a test suite
-    suite = unittest.TestSuite()
-    
-    # Add tests in order
-    suite.addTest(ClublyAPITester('test_01_api_root'))
-    suite.addTest(ClublyAPITester('test_02_get_events'))
-    suite.addTest(ClublyAPITester('test_03_get_event_details'))
-    suite.addTest(ClublyAPITester('test_04_admin_login'))
-    suite.addTest(ClublyAPITester('test_05_user_registration'))
-    suite.addTest(ClublyAPITester('test_06_user_login'))
-    suite.addTest(ClublyAPITester('test_07_get_user_profile'))
-    suite.addTest(ClublyAPITester('test_08_create_booking'))
-    suite.addTest(ClublyAPITester('test_09_get_user_bookings'))
-    suite.addTest(ClublyAPITester('test_10_get_user_chats'))
-    suite.addTest(ClublyAPITester('test_11_get_chat_messages'))
-    suite.addTest(ClublyAPITester('test_12_send_chat_message'))
-    
-    # Run the tests
-    runner = unittest.TextTestRunner(verbosity=2)
-    result = runner.run(suite)
-    
-    # Exit with appropriate code
-    sys.exit(not result.wasSuccessful())
+    run_all_tests()
