@@ -503,6 +503,7 @@ function App() {
   };
 
   const openChat = (chat) => {
+    setChatMessages([]); // Clear previous messages first
     setSelectedChat(chat);
     fetchChatMessages(chat.id);
   };
