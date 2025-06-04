@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { 
+  UserSearchModal, 
+  CreateEventModal, 
+  CreateOrganizationModal, 
+  CreateCapoPromoterModal, 
+  OrganizationDetailsModal 
+} from './Modals';
 
 function App() {
   const [events, setEvents] = useState([]);
