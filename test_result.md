@@ -103,16 +103,19 @@
 #====================================================================================================
 
 user_problem_statement: |
-  Implementare sistema di autenticazione migliorato e dashboard per ruoli diversi:
-  1. Login con username o email + miglioramento design modali auth
-  2. Aggiunta foto profilo opzionale durante registrazione
-  3. Credenziali provvisorie per admin/capo promoter (admin/admin123, capo_milano/Password1)
-  4. Dashboard specifiche per ogni ruolo con funzionalità diverse
-  5. Sistema setup profilo per primo accesso con credenziali temporanee
-  6. Miglioramento funzionalità chat (fix invio messaggi)
+  Voglio che principalmente quando si vede (senza aprire) una persona sia visualizzato lo username e aprendo il profilo vedere tutte le informazioni e accanto ad esso la foto profilo che è stato scelto sia possibile aprire i profili degli utenti per chiunque e vedere le informazioni ovvero: nome cognome, username, foto profilo, città e biografia.
+  Per clubly founder quando si preme crea organizzazione e crea capo promoter non si apre nulla, anche quando si preme sulle organizzazioni non si apre la sezione dell'organizzazione premuta dove vedere l'organizzazione con i promoter che ne fanno parte e le informazioni dell'organizzazioni.
+  Stessa cosa per la gestione dei capi promoter non si può premere sul capo promoter per aprirne il profilo
+  sempre per il ruolo clubly promoter aggiungi la funzione nella sezione eventi "crea evento" in cui appunto si può creare un evento compilando questi campi:
+  Campi obbligatori: Nome dell'evento, data (sempre con opzione calendario), orario di inizio (con menu a tendina per sceglierlo), Locale. 
+  Campi Facoltativi: Organizzazione che fa l'evento appunto da scegliere tra quelle esistenti, orario di fine, line up dj, indirizzo del locale, numero di tavoli disponibili, tipi di tavoli disponibili e il numero massimo di persone per tavolo.
+  Voglio anche che ci sia una sezione per ricercare tutti gli utenti presenti su clubly anche con una barra di ricerca e che la ricerca sia possibile filtrarla per: data di creazione dell'utente e Ruolo.
+  Per il capo promoter quando si preme sia su modifica eventi che su crea credenziali non si apre nulla anche su team organizzazione non si può premere sui singoli promoter per visualizzare il profilo.
+  La chat non è fatta bene non si può scrivere bene fai un bel upgrade di essa per renderla in tempo reale e il più veloce possibile ad esempio quando si vuole scrivere un messaggio ad ogni carattere inserito si deve ripremere per riprendere a scrivere e non va bene.
+  Per il promoter non si può premere sui membri della propria organizzazione per visualizzarne il profilo.
 
 backend:
-  - task: "Login con username o email"
+  - task: "User Profile Viewing API"
     implemented: true
     working: true
     file: "server.py"
@@ -122,9 +125,9 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Modificato endpoint /api/auth/login per accettare sia email che username nel campo 'login'. Testato con successo per entrambi i casi."
+        comment: "API endpoint /api/users/{user_id}/profile implementata per visualizzare profili pubblici con tutte le informazioni richieste: nome, cognome, username, foto profilo, città e biografia."
 
-  - task: "Modelli Pydantic aggiornati con foto profilo"
+  - task: "User Search API with Filters"
     implemented: true
     working: true
     file: "server.py"
@@ -134,9 +137,9 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Aggiornati modelli UserRegister, UserLogin, UserSetup con campo profile_image opzionale."
+        comment: "API endpoint /api/users/search implementata con filtri per nome, ruolo e date di creazione. Supporta ricerca testuale e filtri multipli."
 
-  - task: "Credenziali default per admin e capo promoter"
+  - task: "Event Creation by Promoter API"
     implemented: true
     working: true
     file: "server.py"
@@ -146,21 +149,9 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Aggiunte credenziali: admin/admin123 (clubly_founder) e capo_milano/Password1 (capo_promoter). Testato con successo."
+        comment: "API endpoint /api/events/create-by-promoter implementata con tutti i campi richiesti: obbligatori (nome, data, orario inizio, locale) e facoltativi (organizzazione, orario fine, lineup DJ, indirizzo, tavoli)."
 
-  - task: "API dashboard per ruoli diversi"
-    implemented: true
-    working: true
-    file: "server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Implementati endpoint /api/dashboard/promoter, /api/dashboard/capo-promoter, /api/dashboard/clubly-founder con dati specifici per ruolo."
-
-  - task: "API gestione organizzazioni"
+  - task: "Organization Details API"
     implemented: true
     working: true
     file: "server.py"
@@ -170,9 +161,9 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Implementati endpoint per creazione organizzazioni e gestione membri con permessi appropriati."
+        comment: "API endpoint /api/organizations/{org_id} implementata per mostrare dettagli organizzazione con membri ed eventi associati."
 
-  - task: "API credenziali temporanee"
+  - task: "Enhanced User Models with Biography"
     implemented: true
     working: true
     file: "server.py"
@@ -182,31 +173,7 @@ backend:
     status_history:
       - working: true
         agent: "main"
-        comment: "Implementato endpoint /api/users/temporary-credentials per creazione account temporanei con needs_setup=true."
-
-  - task: "API setup profilo"
-    implemented: true
-    working: true
-    file: "server.py"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Implementato endpoint /api/user/setup per completamento profilo utenti con credenziali temporanee."
-
-  - task: "Aggiornamento database schema"
-    implemented: true
-    working: true
-    file: "server.py"
-    stuck_count: 0
-    priority: "medium"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "main"
-        comment: "Aggiornati schemi database con campi profile_image, needs_setup, organization per supportare nuove funzionalità."
+        comment: "Aggiornati tutti i modelli utente e endpoint per supportare il campo biografia. Aggiornati utenti di esempio con biografie."
 
 frontend:
   - task: "Login con username o email - UI"
