@@ -220,14 +220,23 @@ function App() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({ message: newMessage })
+        body: JSON.stringify({ 
+          chat_id: selectedChat.id,
+          sender_id: currentUser.id,
+          sender_role: currentUser.ruolo,
+          message: newMessage 
+        })
       });
       
       if (response.ok) {
         setNewMessage('');
         fetchChatMessages(selectedChat.id); // Refresh messages
+      } else {
+        console.error('Failed to send message');
+        alert('Errore nell\'invio del messaggio');
       }
     } catch (error) {
+      console.error('Error sending message:', error);
       alert('Errore nell\'invio del messaggio');
     }
   };
