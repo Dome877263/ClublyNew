@@ -436,6 +436,7 @@ async def login(user: UserLogin):
             "username": db_user["username"],
             "ruolo": db_user["ruolo"],
             "citta": db_user["citta"],
+            "biografia": db_user.get("biografia", ""),
             "profile_image": db_user.get("profile_image"),
             "needs_setup": db_user.get("needs_setup", False),
             "organization": db_user.get("organization")
