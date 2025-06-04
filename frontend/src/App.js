@@ -1617,13 +1617,21 @@ function App() {
               <h1 className="text-2xl font-bold text-red-500">CLUBLY</h1>
               
               {currentUser && (
-                <div className="flex items-center space-x-2">
-                  {currentUser.profile_image && (
+                <div 
+                  className="flex items-center space-x-2 cursor-pointer hover:bg-gray-800 rounded-lg p-2 transition-colors"
+                  onClick={() => viewUserProfile(currentUser.id)}
+                  title="Clicca per visualizzare il tuo profilo"
+                >
+                  {currentUser.profile_image ? (
                     <img 
                       src={currentUser.profile_image} 
                       alt="Profile" 
-                      className="w-8 h-8 rounded-full object-cover border border-red-500"
+                      className="w-10 h-10 rounded-full object-cover border-2 border-red-500"
                     />
+                  ) : (
+                    <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center border-2 border-red-500">
+                      <span className="text-white font-bold">{currentUser.nome?.charAt(0)}</span>
+                    </div>
                   )}
                   <div className="flex items-center space-x-1">
                     <span className="text-gray-300 text-sm">
