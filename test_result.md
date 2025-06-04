@@ -102,6 +102,230 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
+user_problem_statement: |
+  Implementare sistema di autenticazione migliorato e dashboard per ruoli diversi:
+  1. Login con username o email + miglioramento design modali auth
+  2. Aggiunta foto profilo opzionale durante registrazione
+  3. Credenziali provvisorie per admin/capo promoter (admin/admin123, capo_milano/Password1)
+  4. Dashboard specifiche per ogni ruolo con funzionalità diverse
+  5. Sistema setup profilo per primo accesso con credenziali temporanee
+  6. Miglioramento funzionalità chat (fix invio messaggi)
+
+backend:
+  - task: "Login con username o email"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Modificato endpoint /api/auth/login per accettare sia email che username nel campo 'login'. Testato con successo per entrambi i casi."
+
+  - task: "Modelli Pydantic aggiornati con foto profilo"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiornati modelli UserRegister, UserLogin, UserSetup con campo profile_image opzionale."
+
+  - task: "Credenziali default per admin e capo promoter"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiunte credenziali: admin/admin123 (clubly_founder) e capo_milano/Password1 (capo_promoter). Testato con successo."
+
+  - task: "API dashboard per ruoli diversi"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementati endpoint /api/dashboard/promoter, /api/dashboard/capo-promoter, /api/dashboard/clubly-founder con dati specifici per ruolo."
+
+  - task: "API gestione organizzazioni"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementati endpoint per creazione organizzazioni e gestione membri con permessi appropriati."
+
+  - task: "API credenziali temporanee"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementato endpoint /api/users/temporary-credentials per creazione account temporanei con needs_setup=true."
+
+  - task: "API setup profilo"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementato endpoint /api/user/setup per completamento profilo utenti con credenziali temporanee."
+
+  - task: "Aggiornamento database schema"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiornati schemi database con campi profile_image, needs_setup, organization per supportare nuove funzionalità."
+
+frontend:
+  - task: "Login con username o email - UI"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Modificato campo email per accettare 'Email o Username' e aggiornata logica handleLogin."
+
+  - task: "Design migliorato modali autenticazione"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Ridisegnate modali auth con gradients, animazioni, focus states migliori, e credenziali demo visibili."
+
+  - task: "Upload foto profilo durante registrazione"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiunto sistema upload foto profilo con preview e conversione in base64 per compatibilità."
+
+  - task: "Modal setup profilo"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementato UserSetupModal per completamento profilo utenti con credenziali temporanee."
+
+  - task: "Header aggiornato con foto profilo e ruoli"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Aggiornato header per mostrare foto profilo, emoji ruolo, e pulsanti per dashboard specifiche."
+
+  - task: "Sistema di navigazione dashboard"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementato sistema currentView per navigazione tra dashboard principale e specifiche per ruolo."
+
+  - task: "Fix funzionalità chat - invio messaggi"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Migliorata funzione sendMessage con tutti i campi richiesti dal backend e migliore gestione errori."
+
+  - task: "Gestione stato needs_setup"
+    implemented: true
+    working: true
+    file: "App.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implementata logica per mostrare modal setup quando user.needs_setup = true."
+
+metadata:
+  created_by: "main_agent"
+  version: "2.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Sistema autenticazione completo"
+    - "Dashboard specifiche per ruoli"
+    - "Funzionalità chat migliorata"
+  stuck_tasks: []
+  test_all: true
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Completata implementazione sistema autenticazione e dashboard avanzato. Backend testato con successo al 100%. Frontend implementato con design migliorato e nuove funzionalità. Sistema pronto per testing frontend."
+  - agent: "testing"
+    message: "Tutti i test backend sono passati con successo. Le API funzionano correttamente per login, registrazione, dashboard e gestione utenti."
+
 user_problem_statement: "Test backend APIs per il nuovo sistema di autenticazione e dashboard: login con username e email, registrazione con foto profilo, dashboard per promoter/capo-promoter/clubly-founder, API organizzazioni, credenziali temporanee e setup profilo."
 
 backend:
