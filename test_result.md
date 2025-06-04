@@ -437,23 +437,66 @@ backend:
         agent: "testing"
         comment: "Test completato con successo. L'API /api/user/setup permette di completare il profilo di un utente con credenziali temporanee, aggiungendo cognome, username, data di nascita, città e immagine del profilo."
 
+  - task: "Visualizzazione profilo utente"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/users/{user_id}/profile restituisce correttamente i dati pubblici del profilo utente, inclusi nome, cognome, username, immagine profilo, città, biografia e ruolo."
+
+  - task: "Ricerca utenti con filtri"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/users/search funziona correttamente con diversi filtri: ricerca per nome, filtro per ruolo e filtro per data di creazione. Tutti i test hanno restituito risultati validi."
+
+  - task: "Creazione eventi da promoter"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/events/create-by-promoter permette ai promoter e capo promoter di creare nuovi eventi. L'evento viene creato correttamente nel database e l'API restituisce l'ID dell'evento."
+
+  - task: "Dettagli organizzazione"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/organizations/{org_id} restituisce correttamente i dettagli dell'organizzazione, inclusi i membri e gli eventi associati all'organizzazione."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
-    - "Login con username e email"
-    - "Registrazione con foto profilo"
-    - "API dashboard promoter"
-    - "API dashboard capo-promoter"
-    - "API dashboard clubly-founder"
-    - "API organizzazioni"
-    - "Creazione nuova organizzazione"
-    - "Creazione credenziali temporanee per promoter"
-    - "Completamento setup profilo"
+    - "Visualizzazione profilo utente"
+    - "Ricerca utenti con filtri"
+    - "Creazione eventi da promoter"
+    - "Dettagli organizzazione"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
@@ -461,3 +504,5 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: "Ho completato tutti i test delle API backend richiesti. Tutti i test sono passati con successo. Ho creato un file backend_test.py che testa tutte le API richieste. I risultati dettagliati sono stati aggiunti al file test_result.md."
+  - agent: "testing"
+    message: "Ho testato con successo le nuove API backend aggiunte per Clubly. Tutte le API funzionano correttamente: visualizzazione profilo utente, ricerca utenti con filtri, creazione eventi da promoter e dettagli organizzazione. I test hanno verificato che il login funziona e restituisce il campo biografia, la ricerca utenti funziona con vari filtri, la creazione eventi da promoter funziona correttamente e l'API organizzazioni restituisce membri ed eventi associati."
