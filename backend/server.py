@@ -712,6 +712,7 @@ async def complete_user_setup(setup: UserSetup, current_user = Depends(verify_jw
         "username": setup.username,
         "data_nascita": setup.data_nascita,
         "citta": setup.citta,
+        "biografia": setup.biografia or "",
         "profile_image": setup.profile_image,
         "needs_setup": False,
         "updated_at": datetime.utcnow()
