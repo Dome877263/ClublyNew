@@ -928,5 +928,31 @@ def run_new_api_tests():
     print(f"\nNew API tests success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
 
 if __name__ == "__main__":
-    # Run only the new API tests
-    run_new_api_tests()
+    # Run only the capo promoter event update tests
+    print("\n=== Running capo promoter event update tests ===\n")
+    
+    # Login as capo_promoter
+    test_login_with_capo_promoter()
+    
+    # Run the capo promoter event update tests
+    test_capo_promoter_event_update_allowed_fields()
+    test_capo_promoter_event_update_restricted_fields()
+    test_promoter_event_update_authorization()
+    
+    # Print summary
+    print("\n=== Capo Promoter Event Update Tests Summary ===")
+    update_tests = [
+        "capo_promoter_event_update_allowed_fields",
+        "capo_promoter_event_update_restricted_fields",
+        "promoter_event_update_authorization"
+    ]
+    for test_name in update_tests:
+        status = "✅ PASS" if test_results[test_name] else "❌ FAIL"
+        print(f"{status} - {test_name}")
+    
+    # Calculate success rate for update tests
+    success_count = sum(1 for test_name in update_tests if test_results[test_name])
+    total_count = len(update_tests)
+    success_rate = (success_count / total_count) * 100
+    
+    print(f"\nCapo promoter event update tests success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
