@@ -1193,39 +1193,51 @@ function App() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="bg-gradient-to-br from-red-600 via-red-800 to-black py-16">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-4xl md:text-6xl font-bold mb-4">
-            La Notte è <span className="text-red-400">NOSTRA</span>
-          </h2>
-          <p className="text-xl md:text-2xl text-gray-200 mb-8">
-            Prenota i migliori eventi e tavoli nelle discoteche più esclusive
-          </p>
-        </div>
-      </section>
-
-      {/* Events Section */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            Eventi <span className="text-red-500">in Programma</span>
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {events.map(event => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
-          
-          {events.length === 0 && (
-            <div className="text-center text-gray-400 py-16">
-              <p className="text-xl">Nessun evento disponibile al momento</p>
-              <p>Torna presto per scoprire i prossimi eventi!</p>
+      {/* Main Content - Conditional Rendering based on currentView */}
+      {currentView === 'main' ? (
+        <>
+          {/* Hero Section */}
+          <section className="bg-gradient-to-br from-red-600 via-red-800 to-black py-16">
+            <div className="container mx-auto px-4 text-center">
+              <h2 className="text-4xl md:text-6xl font-bold mb-4">
+                La Notte è <span className="text-red-400">NOSTRA</span>
+              </h2>
+              <p className="text-xl md:text-2xl text-gray-200 mb-8">
+                Prenota i migliori eventi e tavoli nelle discoteche più esclusive
+              </p>
             </div>
-          )}
-        </div>
-      </section>
+          </section>
+
+          {/* Events Section */}
+          <section className="py-16">
+            <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-bold text-center mb-12">
+                Eventi <span className="text-red-500">in Programma</span>
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {events.map(event => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+              
+              {events.length === 0 && (
+                <div className="text-center text-gray-400 py-16">
+                  <p className="text-xl">Nessun evento disponibile al momento</p>
+                  <p>Torna presto per scoprire i prossimi eventi!</p>
+                </div>
+              )}
+            </div>
+          </section>
+        </>
+      ) : (
+        /* Dashboard Content */
+        <>
+          {currentView === 'promoter' && <PromoterDashboard />}
+          {currentView === 'capo-promoter' && <CapoPromoterDashboard />}
+          {currentView === 'clubly-founder' && <ClublyFounderDashboard />}
+        </>
+      )}
 
       {/* Modals */}
       {showEventDetails && selectedEvent && <EventDetailsModal />}
