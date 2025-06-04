@@ -347,62 +347,90 @@ function App() {
 
   const AuthModal = () => {
     const [formData, setFormData] = useState({
-      email: '', password: '', nome: '', cognome: '', username: '', 
-      data_nascita: '', citta: ''
+      login: '', password: '', nome: '', cognome: '', username: '', 
+      data_nascita: '', citta: '', profile_image: ''
     });
+    const [imagePreview, setImagePreview] = useState(null);
+
+    const handleImageUpload = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFormData({...formData, profile_image: reader.result});
+          setImagePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      }
+    };
 
     const handleSubmit = (e) => {
       e.preventDefault();
       if (authMode === 'login') {
-        handleLogin(formData.email, formData.password);
+        handleLogin(formData.login, formData.password);
       } else {
-        handleRegister(formData);
+        const registerData = {
+          nome: formData.nome,
+          cognome: formData.cognome,
+          email: formData.login,
+          username: formData.username,
+          password: formData.password,
+          data_nascita: formData.data_nascita,
+          citta: formData.citta,
+          profile_image: formData.profile_image
+        };
+        handleRegister(registerData);
       }
     };
 
     return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-        <div className="bg-gray-900 border border-red-600 rounded-lg max-w-md w-full">
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-900 border border-red-600 rounded-xl max-w-md w-full shadow-2xl">
           <div className="p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-white text-xl font-bold">
-                {authMode === 'login' ? 'Accedi' : 'Registrati'}
+              <h2 className="text-white text-2xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent">
+                {authMode === 'login' ? 'Accedi a Clubly' : 'Unisciti a Clubly'}
               </h2>
               <button 
                 onClick={() => setShowAuth(false)}
-                className="text-gray-400 hover:text-red-400 text-xl"
+                className="text-gray-400 hover:text-red-400 text-2xl font-bold transition-colors"
               >
                 ✕
               </button>
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
-              <input
-                type="email"
-                placeholder="Email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
-                required
-              />
-              <input
-                type="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={authMode === 'login' ? 'text' : 'email'}
+                  placeholder={authMode === 'login' ? 'Email o Username' : 'Email'}
+                  value={formData.login}
+                  onChange={(e) => setFormData({...formData, login: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  required
+                />
+              </div>
+              
+              <div className="relative">
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  required
+                />
+              </div>
               
               {authMode === 'register' && (
                 <>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <input
                       type="text"
                       placeholder="Nome"
                       value={formData.nome}
                       onChange={(e) => setFormData({...formData, nome: e.target.value})}
-                      className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                      className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                       required
                     />
                     <input
@@ -410,52 +438,83 @@ function App() {
                       placeholder="Cognome"
                       value={formData.cognome}
                       onChange={(e) => setFormData({...formData, cognome: e.target.value})}
-                      className="bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                      className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                       required
                     />
                   </div>
+                  
                   <input
                     type="text"
                     placeholder="Username"
                     value={formData.username}
                     onChange={(e) => setFormData({...formData, username: e.target.value})}
-                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                     required
                   />
+                  
                   <input
                     type="date"
                     value={formData.data_nascita}
                     onChange={(e) => setFormData({...formData, data_nascita: e.target.value})}
-                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                     required
                   />
+                  
                   <input
                     type="text"
                     placeholder="Città"
                     value={formData.citta}
                     onChange={(e) => setFormData({...formData, citta: e.target.value})}
-                    className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                     required
                   />
+                  
+                  {/* Profile Image Upload */}
+                  <div className="space-y-2">
+                    <label className="text-white text-sm font-medium">Foto Profilo (Opzionale)</label>
+                    <div className="flex items-center space-x-4">
+                      {imagePreview && (
+                        <img 
+                          src={imagePreview} 
+                          alt="Preview" 
+                          className="w-16 h-16 rounded-full object-cover border-2 border-red-500"
+                        />
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
+                      />
+                    </div>
+                  </div>
                 </>
               )}
               
               <button 
                 type="submit" 
-                className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded font-bold transition-colors"
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-lg font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
               >
-                {authMode === 'login' ? 'Accedi' : 'Registrati'}
+                {authMode === 'login' ? '🔐 Accedi' : '🎉 Registrati'}
               </button>
             </form>
             
-            <div className="mt-4 text-center">
+            <div className="mt-6 text-center">
               <button 
                 onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
-                className="text-red-400 hover:text-red-300 text-sm"
+                className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors"
               >
-                {authMode === 'login' ? 'Non hai un account? Registrati' : 'Hai già un account? Accedi'}
+                {authMode === 'login' ? '✨ Non hai un account? Registrati ora' : '👋 Hai già un account? Accedi'}
               </button>
             </div>
+            
+            {authMode === 'login' && (
+              <div className="mt-4 p-3 bg-gray-800 rounded-lg border border-gray-700">
+                <p className="text-gray-300 text-xs text-center">
+                  <span className="text-red-400 font-medium">Demo:</span> admin / admin123 | capo_milano / Password1
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
