@@ -40,6 +40,30 @@ class UserRegister(BaseModel):
     data_nascita: str
     citta: str
     ruolo: str = "cliente"
+    profile_image: Optional[str] = None
+
+class UserLogin(BaseModel):
+    login: str  # Can be email or username
+    password: str
+
+class UserSetup(BaseModel):
+    cognome: str
+    username: str
+    data_nascita: str
+    citta: str
+    profile_image: Optional[str] = None
+
+class OrganizationCreate(BaseModel):
+    name: str
+    location: str
+    capo_promoter_username: str
+
+class TemporaryCredentials(BaseModel):
+    nome: str
+    email: str
+    password: str = "Password1"
+    ruolo: str  # "promoter" or "capo_promoter"
+    organization: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: str
