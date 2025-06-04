@@ -16,6 +16,9 @@ function App() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [currentView, setCurrentView] = useState('main'); // main, promoter, capo-promoter, clubly-founder
+  const [showUserSetup, setShowUserSetup] = useState(false);
+  const [dashboardData, setDashboardData] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
