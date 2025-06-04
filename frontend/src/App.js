@@ -33,6 +33,12 @@ function App() {
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    if (currentUser && currentView !== 'main') {
+      fetchDashboardData();
+    }
+  }, [currentView, currentUser]);
+
   const checkAuthStatus = async () => {
     const token = localStorage.getItem('token');
     if (token) {
