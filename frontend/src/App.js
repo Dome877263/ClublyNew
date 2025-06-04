@@ -1059,7 +1059,7 @@ function App() {
 
   const UserSetupModal = () => {
     const [setupData, setSetupData] = useState({
-      cognome: '', username: '', data_nascita: '', citta: '', profile_image: ''
+      cognome: '', username: '', data_nascita: '', citta: '', profile_image: '', biografia: ''
     });
     const [imagePreview, setImagePreview] = useState(null);
 
@@ -1132,6 +1132,14 @@ function App() {
                 required
               />
               
+              <textarea
+                placeholder="Biografia (Opzionale)"
+                value={setupData.biografia}
+                onChange={(e) => setSetupData({...setupData, biografia: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                rows="3"
+              />
+              
               {/* Profile Image Upload */}
               <div className="space-y-2">
                 <label className="text-white text-sm font-medium">Foto Profilo (Opzionale)</label>
@@ -1159,6 +1167,80 @@ function App() {
                 🎯 Completa Configurazione
               </button>
             </form>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // New Modal Components
+  const UserProfileModal = () => {
+    if (!selectedUserProfile) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-900 border border-red-600 rounded-xl max-w-md w-full shadow-2xl">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-white text-2xl font-bold">Profilo Utente</h2>
+              <button 
+                onClick={() => setShowUserProfile(false)}
+                className="text-gray-400 hover:text-red-400 text-2xl font-bold transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="text-center mb-6">
+              {selectedUserProfile.profile_image ? (
+                <img 
+                  src={selectedUserProfile.profile_image} 
+                  alt="Profile" 
+                  className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-red-500"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mx-auto">
+                  <span className="text-white text-3xl font-bold">
+                    {selectedUserProfile.nome?.charAt(0)}
+                  </span>
+                </div>
+              )}
+              <h3 className="text-white text-xl font-bold mt-4">
+                {selectedUserProfile.nome} {selectedUserProfile.cognome}
+              </h3>
+              <p className="text-gray-400">@{selectedUserProfile.username}</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="bg-gray-800 rounded-lg p-4">
+                <h4 className="text-red-400 font-bold mb-2">📍 Informazioni</h4>
+                <p className="text-gray-300"><span className="text-gray-400">Città:</span> {selectedUserProfile.citta}</p>
+                <p className="text-gray-300"><span className="text-gray-400">Ruolo:</span> {
+                  selectedUserProfile.ruolo === 'clubly_founder' ? '👑 Clubly Founder' :
+                  selectedUserProfile.ruolo === 'capo_promoter' ? '🎯 Capo Promoter' :
+                  selectedUserProfile.ruolo === 'promoter' ? '🎪 Promoter' : '🎉 Cliente'
+                }</p>
+                {selectedUserProfile.organization && (
+                  <p className="text-gray-300"><span className="text-gray-400">Organizzazione:</span> {selectedUserProfile.organization}</p>
+                )}
+              </div>
+              
+              {selectedUserProfile.biografia && (
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <h4 className="text-red-400 font-bold mb-2">📝 Biografia</h4>
+                  <p className="text-gray-300">{selectedUserProfile.biografia}</p>
+                </div>
+              )}
+              
+              <div className="bg-gray-800 rounded-lg p-4">
+                <h4 className="text-red-400 font-bold mb-2">📅 Membro da</h4>
+                <p className="text-gray-300">
+                  {new Date(selectedUserProfile.created_at).toLocaleDateString('it-IT', {
+                    year: 'numeric', month: 'long', day: 'numeric'
+                  })}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
