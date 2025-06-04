@@ -582,18 +582,12 @@ function App() {
                 </div>
               ))}
             </div>
-            <div className="mt-4 space-y-2">
+            <div className="mt-4">
               <button 
                 onClick={() => setShowCreateEvent(true)}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
               >
                 ➕ Crea Evento
-              </button>
-              <button 
-                onClick={() => alert('Seleziona un evento dall\'elenco sopra per modificarlo')}
-                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
-              >
-                ✏️ Modifica Eventi
               </button>
             </div>
           </div>
