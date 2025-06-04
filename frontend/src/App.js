@@ -440,94 +440,100 @@ function App() {
 
   // Dashboard Components
   const PromoterDashboard = () => {
-    if (!dashboardData) return <div className="text-center py-8">Caricamento dashboard...</div>;
-
+    if (!dashboardData) return <div className="text-white">Caricamento...</div>;
+    
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">Dashboard Promoter</h2>
-          <p className="text-gray-400">Organizzazione: <span className="text-red-400 font-bold">{dashboardData.organization}</span></p>
-        </div>
+        <h1 className="text-3xl font-bold text-white mb-8 flex items-center">
+          🎪 Dashboard Promoter
+          <span className="ml-4 text-gray-400 text-lg">Organizzazione: {dashboardData.organization}</span>
+        </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Eventi della tua organizzazione */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Eventi dell'organizzazione */}
           <div className="bg-gray-900 border border-red-600 rounded-lg p-6">
-            <h3 className="text-xl font-bold text-white mb-4">📅 Eventi Organizzazione</h3>
-            <div className="space-y-4">
-              {dashboardData.events?.length > 0 ? (
-                dashboardData.events.map(event => (
-                  <div key={event.id} className="bg-gray-800 rounded-lg p-4">
-                    <h4 className="text-white font-bold">{event.name}</h4>
-                    <p className="text-gray-300 text-sm">📍 {event.location}</p>
-                    <p className="text-gray-300 text-sm">📅 {event.date} alle {event.start_time}</p>
-                    <p className="text-gray-300 text-sm">🎵 {event.lineup?.join(', ')}</p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-gray-400">Nessun evento trovato</p>
-              )}
+            <h3 className="text-xl font-bold text-white mb-4">🎉 Eventi dell'Organizzazione</h3>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {dashboardData.events?.map(event => (
+                <div key={event.id} className="bg-gray-800 rounded-lg p-3">
+                  <h4 className="text-white font-bold">{event.name}</h4>
+                  <p className="text-gray-300 text-sm">📅 {event.date}</p>
+                  <p className="text-gray-300 text-sm">📍 {event.location}</p>
+                </div>
+              ))}
             </div>
+            <button 
+              onClick={() => setShowCreateEvent(true)}
+              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+            >
+              ➕ Crea Evento
+            </button>
           </div>
 
-          {/* Membri organizzazione */}
-          <div className="bg-gray-900 border border-red-600 rounded-lg p-6">
+          {/* Membri del team */}
+          <div className="bg-gray-900 border border-blue-600 rounded-lg p-6">
             <h3 className="text-xl font-bold text-white mb-4">👥 Team Organizzazione</h3>
-            <div className="space-y-3">
-              {dashboardData.members?.length > 0 ? (
-                dashboardData.members.map(member => (
-                  <div key={member.id} className="flex items-center space-x-3 bg-gray-800 rounded-lg p-3">
-                    {member.profile_image ? (
-                      <img src={member.profile_image} alt="Profile" className="w-10 h-10 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold">{member.nome?.charAt(0)}</span>
-                      </div>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {dashboardData.members?.map(member => (
+                <div 
+                  key={member.id} 
+                  onClick={() => viewUserProfile(member.id)}
+                  className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex items-center space-x-3">
+                    {member.profile_image && (
+                      <img 
+                        src={member.profile_image} 
+                        alt={member.nome}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
                     )}
                     <div>
-                      <p className="text-white font-bold">{member.nome} {member.cognome}</p>
-                      <p className="text-gray-400 text-sm">
-                        {member.ruolo === 'capo_promoter' ? '🎯 Capo Promoter' : '🎪 Promoter'} • {member.citta}
+                      <p className="text-white font-bold">@{member.username}</p>
+                      <p className="text-gray-300 text-sm">
+                        {member.ruolo === 'capo_promoter' ? '🎯' : '🎪'} {member.nome} {member.cognome}
                       </p>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="text-gray-400">Nessun membro trovato</p>
-              )}
+                </div>
+              ))}
             </div>
+          </div>
+
+          {/* Chat attive */}
+          <div className="bg-gray-900 border border-green-600 rounded-lg p-6">
+            <h3 className="text-xl font-bold text-white mb-4">💬 Chat Attive</h3>
+            <div className="space-y-3 max-h-64 overflow-y-auto">
+              {dashboardData.chats?.slice(0, 5).map(chat => (
+                <div key={chat.id} className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-white font-bold">{chat.client?.nome}</p>
+                  <p className="text-gray-300 text-sm">{chat.event?.name}</p>
+                  {chat.last_message && (
+                    <p className="text-gray-400 text-xs truncate">
+                      {chat.last_message.message.substring(0, 40)}...
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => setShowChat(true)}
+              className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
+            >
+              💬 Apri Chat
+            </button>
           </div>
         </div>
 
-        {/* Chat attive */}
-        <div className="mt-8 bg-gray-900 border border-red-600 rounded-lg p-6">
-          <h3 className="text-xl font-bold text-white mb-4">💬 Le Tue Chat Attive</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {dashboardData.chats?.length > 0 ? (
-              dashboardData.chats.map(chat => (
-                <div key={chat.id} className="bg-gray-800 rounded-lg p-4 cursor-pointer hover:bg-gray-700 transition-colors"
-                     onClick={() => { setSelectedChat(chat); setShowChat(true); fetchChatMessages(chat.id); }}>
-                  <div className="flex items-center space-x-3 mb-2">
-                    {chat.client?.profile_image ? (
-                      <img src={chat.client.profile_image} alt="Client" className="w-8 h-8 rounded-full object-cover" />
-                    ) : (
-                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-white text-sm font-bold">{chat.client?.nome?.charAt(0)}</span>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-white font-bold text-sm">{chat.client?.nome} {chat.client?.cognome}</p>
-                      <p className="text-gray-400 text-xs">{chat.event?.name}</p>
-                    </div>
-                  </div>
-                  {chat.last_message && (
-                    <p className="text-gray-500 text-xs truncate">{chat.last_message.message}</p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400">Nessuna chat attiva</p>
-            )}
-          </div>
+        {/* User Search Section */}
+        <div className="mt-8 bg-gray-900 border border-purple-600 rounded-lg p-6">
+          <h3 className="text-xl font-bold text-white mb-4">🔍 Ricerca Utenti</h3>
+          <button 
+            onClick={() => setShowUserSearch(true)}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded font-bold transition-colors"
+          >
+            Cerca Utenti Clubly
+          </button>
         </div>
       </div>
     );
