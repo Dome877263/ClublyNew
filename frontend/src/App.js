@@ -833,7 +833,7 @@ function App() {
         {/* Eventi recenti */}
         <div className="mt-8 bg-gray-900 border border-red-600 rounded-lg p-6">
           <h3 className="text-xl font-bold text-white mb-4">🎉 Tutti gli Eventi</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {dashboardData.events?.slice(0, 6).map(event => (
               <div key={event.id} className="bg-gray-800 rounded-lg p-4">
                 <h4 className="text-white font-bold">{event.name}</h4>
@@ -843,6 +843,12 @@ function App() {
               </div>
             ))}
           </div>
+          <button 
+            onClick={() => setShowCreateEvent(true)}
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded font-bold transition-colors"
+          >
+            ➕ Crea Nuovo Evento
+          </button>
         </div>
       </div>
     );
