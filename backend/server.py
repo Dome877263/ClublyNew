@@ -177,6 +177,7 @@ def initialize_default_data():
             "ruolo": "clubly_founder",
             "data_nascita": "1990-01-01",
             "citta": "Milano",
+            "biografia": "Fondatore di Clubly, appassionato di vita notturna e tecnologia.",
             "profile_image": None,
             "needs_setup": False,
             "created_at": datetime.utcnow()
@@ -196,6 +197,7 @@ def initialize_default_data():
             "ruolo": "capo_promoter",
             "data_nascita": "1988-05-10",
             "citta": "Milano",
+            "biografia": "Capo promoter con 10 anni di esperienza nel settore della vita notturna milanese.",
             "organization": "Night Events Milano",
             "profile_image": None,
             "needs_setup": False,
