@@ -895,9 +895,22 @@ def run_new_api_tests():
     test_event_creation_by_promoter()
     test_organization_details()
     
+    # Capo promoter event update tests
+    test_capo_promoter_event_update_allowed_fields()
+    test_capo_promoter_event_update_restricted_fields()
+    test_promoter_event_update_authorization()
+    
     # Print summary
     print("\n=== New API Tests Summary ===")
-    new_tests = ["user_profile_viewing", "user_search", "event_creation_by_promoter", "organization_details"]
+    new_tests = [
+        "user_profile_viewing", 
+        "user_search", 
+        "event_creation_by_promoter", 
+        "organization_details",
+        "capo_promoter_event_update_allowed_fields",
+        "capo_promoter_event_update_restricted_fields",
+        "promoter_event_update_authorization"
+    ]
     for test_name in new_tests:
         status = "✅ PASS" if test_results[test_name] else "❌ FAIL"
         print(f"{status} - {test_name}")
