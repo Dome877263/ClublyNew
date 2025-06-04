@@ -661,10 +661,34 @@ function App() {
         <div className="mt-8 bg-gray-900 border border-yellow-600 rounded-lg p-6">
           <h3 className="text-xl font-bold text-white mb-4">⚡ Permessi Speciali</h3>
           <p className="text-gray-300 mb-4">Come Capo Promoter hai accesso a funzionalità avanzate di gestione.</p>
-          <div className="flex flex-wrap gap-4">
-            <div className="bg-yellow-600 px-4 py-2 rounded text-black font-bold">✅ Modifica Eventi</div>
-            <div className="bg-yellow-600 px-4 py-2 rounded text-black font-bold">✅ Gestione Team</div>
-            <div className="bg-yellow-600 px-4 py-2 rounded text-black font-bold">✅ Crea Promoter</div>
+          <div className="space-y-3">
+            <div className="flex items-center space-x-3 bg-gray-800 rounded-lg p-4 border-l-4 border-yellow-500">
+              <div className="w-10 h-10 bg-yellow-600 rounded-full flex items-center justify-center">
+                <span className="text-black font-bold">✏️</span>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Modifica Eventi</h4>
+                <p className="text-gray-400 text-sm">Puoi modificare: Nome evento, Line-up DJ e Orario di inizio</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold">👥</span>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Gestione Team</h4>
+                <p className="text-gray-400 text-sm">Visualizza e gestisci i membri della tua organizzazione</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3 bg-gray-800 rounded-lg p-4 border-l-4 border-green-500">
+              <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold">🆔</span>
+              </div>
+              <div>
+                <h4 className="text-white font-semibold">Crea Promoter</h4>
+                <p className="text-gray-400 text-sm">Crea nuovi account promoter per la tua organizzazione</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
