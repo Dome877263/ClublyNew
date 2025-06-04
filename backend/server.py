@@ -65,10 +65,6 @@ class TemporaryCredentials(BaseModel):
     ruolo: str  # "promoter" or "capo_promoter"
     organization: Optional[str] = None
 
-class UserLogin(BaseModel):
-    email: str
-    password: str
-
 class Event(BaseModel):
     name: str
     date: str
