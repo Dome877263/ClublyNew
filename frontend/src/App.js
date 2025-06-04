@@ -1487,7 +1487,10 @@ function App() {
                       )}
                     </div>
                     <div>
-                      <h3 className="text-white font-semibold">
+                      <h3 
+                        className="text-white font-semibold cursor-pointer hover:text-red-400 transition-colors"
+                        onClick={() => viewUserProfile(selectedChat.other_participant?.id)}
+                      >
                         @{selectedChat.other_participant?.username}
                       </h3>
                       <p className="text-gray-400 text-sm">
