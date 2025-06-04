@@ -298,6 +298,141 @@ function App() {
     }
   };
 
+  // New functions for enhanced features
+  const viewUserProfile = async (userId) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/users/${userId}/profile`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const profile = await response.json();
+        setSelectedUserProfile(profile);
+        setShowUserProfile(true);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
+  const searchUsers = async (searchParams) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/users/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(searchParams)
+      });
+      
+      if (response.ok) {
+        const results = await response.json();
+        setSearchResults(results);
+      }
+    } catch (error) {
+      console.error('Error searching users:', error);
+    }
+  };
+
+  const createEventByPromoter = async (eventData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/events/create-by-promoter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(eventData)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert('Evento creato con successo!');
+        setShowCreateEvent(false);
+        fetchDashboardData(); // Refresh dashboard data
+        fetchEvents(); // Refresh events list
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error creating event:', error);
+      alert('Errore durante la creazione dell\'evento');
+    }
+  };
+
+  const createOrganization = async (orgData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/organizations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(orgData)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert('Organizzazione creata con successo!');
+        setShowCreateOrganization(false);
+        fetchDashboardData(); // Refresh dashboard data
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error creating organization:', error);
+      alert('Errore durante la creazione dell\'organizzazione');
+    }
+  };
+
+  const createCapoPromoter = async (userData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/users/temporary-credentials`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...userData,
+          ruolo: 'capo_promoter'
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Capo Promoter creato con successo!\nEmail: ${result.email}\nPassword temporanea: ${result.temporary_password}`);
+        setShowCreateCapoPromoter(false);
+        fetchDashboardData(); // Refresh dashboard data
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error creating capo promoter:', error);
+      alert('Errore durante la creazione del capo promoter');
+    }
+  };
+
+  const viewOrganizationDetails = async (orgId) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/organizations/${orgId}`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      
+      if (response.ok) {
+        const org = await response.json();
+        setSelectedOrganization(org);
+        setShowOrganizationDetails(true);
+      }
+    } catch (error) {
+      console.error('Error fetching organization details:', error);
+    }
+  };
+
   const openChat = (chat) => {
     setSelectedChat(chat);
     fetchChatMessages(chat.id);
