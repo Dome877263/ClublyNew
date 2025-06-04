@@ -951,6 +951,133 @@ async def update_event(event_id: str, event_update: dict, current_user = Depends
     
     return {"message": "Evento aggiornato con successo"}
 
+# User profile viewing endpoints
+@app.get("/api/users/{user_id}/profile")
+async def get_user_profile(user_id: str, current_user = Depends(verify_jwt_token)):
+    """Get public profile of any user"""
+    user = db.users.find_one({"id": user_id}, {"_id": 0, "password": 0})
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    
+    return {
+        "id": user["id"],
+        "nome": user["nome"],
+        "cognome": user["cognome"],
+        "username": user["username"],
+        "profile_image": user.get("profile_image"),
+        "citta": user["citta"],
+        "biografia": user.get("biografia"),
+        "ruolo": user["ruolo"],
+        "organization": user.get("organization"),
+        "created_at": user["created_at"]
+    }
+
+# User search endpoint
+@app.post("/api/users/search")
+async def search_users(search_params: UserSearch, current_user = Depends(verify_jwt_token)):
+    """Search users with filters"""
+    query = {}
+    
+    # Text search on nome, cognome, username
+    if search_params.search_term:
+        query["$or"] = [
+            {"nome": {"$regex": search_params.search_term, "$options": "i"}},
+            {"cognome": {"$regex": search_params.search_term, "$options": "i"}},
+            {"username": {"$regex": search_params.search_term, "$options": "i"}}
+        ]
+    
+    # Role filter
+    if search_params.role_filter:
+        query["ruolo"] = search_params.role_filter
+    
+    # Date filter
+    if search_params.creation_date_from or search_params.creation_date_to:
+        date_query = {}
+        if search_params.creation_date_from:
+            date_query["$gte"] = datetime.fromisoformat(search_params.creation_date_from)
+        if search_params.creation_date_to:
+            date_query["$lte"] = datetime.fromisoformat(search_params.creation_date_to)
+        query["created_at"] = date_query
+    
+    users = list(db.users.find(query, {
+        "_id": 0, 
+        "password": 0
+    }).sort("created_at", -1).limit(50))
+    
+    # Return only public info
+    return [{
+        "id": user["id"],
+        "nome": user["nome"],
+        "cognome": user["cognome"],
+        "username": user["username"],
+        "profile_image": user.get("profile_image"),
+        "citta": user["citta"],
+        "biografia": user.get("biografia"),
+        "ruolo": user["ruolo"],
+        "organization": user.get("organization"),
+        "created_at": user["created_at"]
+    } for user in users]
+
+# Event creation for promoters
+@app.post("/api/events/create-by-promoter")
+async def create_event_by_promoter(event: EventCreate, current_user = Depends(verify_jwt_token)):
+    """Create event by promoter"""
+    if current_user["ruolo"] not in ["promoter", "capo_promoter", "clubly_founder"]:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Get user's organization if not specified
+    user = db.users.find_one({"id": current_user["id"]})
+    organization = event.organization or user.get("organization")
+    
+    event_data = {
+        "id": str(uuid.uuid4()),
+        "name": event.name,
+        "date": event.date,
+        "start_time": event.start_time,
+        "location": event.location,
+        "organization": organization,
+        "end_time": event.end_time,
+        "lineup": event.lineup or [],
+        "location_address": event.location_address,
+        "total_tables": event.total_tables or 0,
+        "tables_available": event.total_tables or 0,
+        "table_types": event.table_types or [],
+        "max_party_size": event.max_party_size or 10,
+        "guests": [],
+        "image": None,
+        "created_at": datetime.utcnow(),
+        "created_by": current_user["id"]
+    }
+    
+    db.events.insert_one(event_data)
+    return {"message": "Evento creato con successo", "event_id": event_data["id"]}
+
+# Organization details endpoint
+@app.get("/api/organizations/{org_id}")
+async def get_organization_details(org_id: str, current_user = Depends(verify_jwt_token)):
+    """Get organization details with members"""
+    org = db.organizations.find_one({"id": org_id}, {"_id": 0})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organizzazione non trovata")
+    
+    # Get organization members
+    members = list(db.users.find(
+        {"organization": org["name"]}, 
+        {"_id": 0, "password": 0}
+    ).sort("ruolo", 1))
+    
+    # Get organization events
+    events = list(db.events.find(
+        {"organization": org["name"]}, 
+        {"_id": 0}
+    ).sort("date", 1))
+    
+    return {
+        **org,
+        "members": members,
+        "events": events
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
