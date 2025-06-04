@@ -374,8 +374,14 @@ async def register(user: UserRegister):
 
 @app.post("/api/auth/login")
 async def login(user: UserLogin):
-    # Find user in database
-    db_user = db.users.find_one({"email": user.email})
+    # Find user in database by email or username
+    db_user = db.users.find_one({
+        "$or": [
+            {"email": user.login},
+            {"username": user.login}
+        ]
+    })
+    
     if not db_user or not verify_password(user.password, db_user["password"]):
         raise HTTPException(status_code=401, detail="Credenziali non valide")
     
@@ -397,7 +403,10 @@ async def login(user: UserLogin):
             "email": db_user["email"],
             "username": db_user["username"],
             "ruolo": db_user["ruolo"],
-            "citta": db_user["citta"]
+            "citta": db_user["citta"],
+            "profile_image": db_user.get("profile_image"),
+            "needs_setup": db_user.get("needs_setup", False),
+            "organization": db_user.get("organization")
         }
     }
 
