@@ -292,6 +292,8 @@ agent_communication:
     message: "Completata implementazione sistema autenticazione e dashboard avanzato. Backend testato con successo al 100%. Frontend implementato con design migliorato e nuove funzionalità. Sistema pronto per testing frontend."
   - agent: "testing"
     message: "Tutti i test backend sono passati con successo. Le API funzionano correttamente per login, registrazione, dashboard e gestione utenti."
+  - agent: "main"
+    message: "Implementate modifiche richieste dall'utente: 1) Modifiche eventi per capo promoter limitati a nome, lineup DJ e orario 2) Ridisegnata sezione permessi speciali con layout elegante 3) Nomi utente cliccabili nella chat per aprire profili 4) Aggiunta modal di modifica eventi funzionante."
 
 user_problem_statement: "Test backend APIs per il nuovo sistema di autenticazione e dashboard: login con username e email, registrazione con foto profilo, dashboard per promoter/capo-promoter/clubly-founder, API organizzazioni, credenziali temporanee e setup profilo."
 
