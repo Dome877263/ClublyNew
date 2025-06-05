@@ -1902,6 +1902,12 @@ function App() {
         onSubmit={createCapoPromoter}
       />
       
+      <CreatePromoterModal 
+        show={showCreatePromoter}
+        onClose={() => setShowCreatePromoter(false)}
+        onSubmit={createPromoter}
+      />
+      
       <OrganizationDetailsModal 
         show={showOrganizationDetails}
         onClose={() => setShowOrganizationDetails(false)}
