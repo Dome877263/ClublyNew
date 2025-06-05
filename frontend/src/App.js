@@ -1620,31 +1620,49 @@ function App() {
                   </div>
                 </div>
                 
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                  {chatMessages.map(message => (
-                    <div 
-                      key={message.id} 
-                      className={`flex ${message.sender_id === currentUser.id ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div 
-                        className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-                          message.sender_id === currentUser.id 
-                            ? 'bg-red-600 text-white rounded-br-sm' 
-                            : 'bg-gray-700 text-white rounded-bl-sm'
-                        }`}
-                      >
-                        <p className="whitespace-pre-wrap break-words">{message.message}</p>
-                        <p className="text-xs opacity-75 mt-2">
-                          {new Date(message.timestamp).toLocaleTimeString('it-IT', {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
+                  {isLoadingChatMessages ? (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+                        <p className="text-gray-400">Caricamento messaggi...</p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  ) : (
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                      {chatMessages.map(message => (
+                        <div 
+                          key={message.id} 
+                          className={`flex ${message.sender_id === currentUser.id ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div 
+                            className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
+                              message.sender_id === currentUser.id 
+                                ? 'bg-red-600 text-white rounded-br-sm' 
+                                : 'bg-gray-700 text-white rounded-bl-sm'
+                            }`}
+                          >
+                            <p className="whitespace-pre-wrap break-words">{message.message}</p>
+                            <p className="text-xs opacity-75 mt-2">
+                              {new Date(message.timestamp).toLocaleTimeString('it-IT', {
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {chatMessages.length === 0 && !isLoadingChatMessages && (
+                        <div className="flex-1 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-4xl mb-4">💬</div>
+                            <p className="text-gray-400">Nessun messaggio ancora</p>
+                            <p className="text-gray-500 text-sm">Inizia la conversazione!</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 
                 {/* Message Input */}
                 <div className="p-4 border-t border-red-600 bg-gray-800">
