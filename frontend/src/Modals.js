@@ -664,7 +664,9 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
   const [eventData, setEventData] = useState({
     name: '',
     lineup: '',
-    start_time: ''
+    start_time: '',
+    end_time: '',
+    guests: ''
   });
 
   // Initialize form data when event changes
@@ -673,7 +675,9 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
       setEventData({
         name: event.name || '',
         lineup: Array.isArray(event.lineup) ? event.lineup.join(', ') : (event.lineup || ''),
-        start_time: event.start_time || ''
+        start_time: event.start_time || '',
+        end_time: event.end_time || '',
+        guests: Array.isArray(event.guests) ? event.guests.join(', ') : (event.guests || '')
       });
     }
   }, [event]);
@@ -683,7 +687,9 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
     const formattedData = {
       name: eventData.name,
       lineup: eventData.lineup ? eventData.lineup.split(',').map(dj => dj.trim()) : [],
-      start_time: eventData.start_time
+      start_time: eventData.start_time,
+      end_time: eventData.end_time,
+      guests: eventData.guests ? eventData.guests.split(',').map(guest => guest.trim()) : []
     };
     onSubmit(event.id, formattedData);
   };
@@ -715,7 +721,7 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
           <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-4 mb-6">
             <h4 className="text-yellow-400 font-bold text-sm mb-2">⚠️ Permessi di Modifica</h4>
             <p className="text-yellow-300 text-xs">
-              Come Capo Promoter puoi modificare solo: <strong>Nome evento, Line-up DJ e Orario di inizio</strong>
+              Come Capo Promoter puoi modificare: <strong>Nome evento, Orario di inizio, Orario di fine, Line-up DJ e Guest</strong>
             </p>
           </div>
           
@@ -745,26 +751,58 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
                 <p className="text-gray-400 text-xs mt-1">Esempio: DJ Marco, DJ Sara, DJ Alex</p>
               </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-orange-400 font-bold block mb-2">🕘 Orario di Inizio</label>
+                  <select
+                    value={eventData.start_time}
+                    onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                    required
+                  >
+                    <option value="">Seleziona orario</option>
+                    <option value="18:00">18:00</option>
+                    <option value="19:00">19:00</option>
+                    <option value="20:00">20:00</option>
+                    <option value="21:00">21:00</option>
+                    <option value="22:00">22:00</option>
+                    <option value="22:30">22:30</option>
+                    <option value="23:00">23:00</option>
+                    <option value="23:30">23:30</option>
+                    <option value="00:00">00:00</option>
+                    <option value="01:00">01:00</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-orange-400 font-bold block mb-2">🕘 Orario di Fine</label>
+                  <select
+                    value={eventData.end_time}
+                    onChange={(e) => setEventData({...eventData, end_time: e.target.value})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                  >
+                    <option value="">Seleziona orario fine</option>
+                    <option value="01:00">01:00</option>
+                    <option value="02:00">02:00</option>
+                    <option value="03:00">03:00</option>
+                    <option value="04:00">04:00</option>
+                    <option value="05:00">05:00</option>
+                    <option value="06:00">06:00</option>
+                    <option value="07:00">07:00</option>
+                  </select>
+                </div>
+              </div>
+
               <div>
-                <label className="text-orange-400 font-bold block mb-2">🕘 Orario di Inizio</label>
-                <select
-                  value={eventData.start_time}
-                  onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                  required
-                >
-                  <option value="">Seleziona orario</option>
-                  <option value="18:00">18:00</option>
-                  <option value="19:00">19:00</option>
-                  <option value="20:00">20:00</option>
-                  <option value="21:00">21:00</option>
-                  <option value="22:00">22:00</option>
-                  <option value="22:30">22:30</option>
-                  <option value="23:00">23:00</option>
-                  <option value="23:30">23:30</option>
-                  <option value="00:00">00:00</option>
-                  <option value="01:00">01:00</option>
-                </select>
+                <label className="text-orange-400 font-bold block mb-2">⭐ Guest Speciali</label>
+                <input
+                  type="text"
+                  placeholder="Guest speciali (separati da virgola)"
+                  value={eventData.guests}
+                  onChange={(e) => setEventData({...eventData, guests: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                />
+                <p className="text-gray-400 text-xs mt-1">Esempio: Artista Speciale, Celebrity Guest</p>
               </div>
             </div>
             
