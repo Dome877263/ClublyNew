@@ -7,7 +7,8 @@ import {
   CreateEventModal, 
   EditEventModal,
   CreateOrganizationModal, 
-  CreateCapoPromoterModal, 
+  CreateCapoPromoterModal,
+  CreatePromoterModal,
   OrganizationDetailsModal 
 } from './Modals';
 
