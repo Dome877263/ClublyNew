@@ -489,7 +489,7 @@ function App() {
     }
   };
 
-  const createCapoPromoter = async (userData) => {
+  const createPromoter = async (userData) => {
     try {
       const response = await fetch(`${backendUrl}/api/users/temporary-credentials`, {
         method: 'POST',
@@ -499,22 +499,22 @@ function App() {
         },
         body: JSON.stringify({
           ...userData,
-          ruolo: 'capo_promoter'
+          ruolo: 'promoter'
         })
       });
       
       if (response.ok) {
         const result = await response.json();
-        alert(`Capo Promoter creato con successo!\nEmail: ${result.email}\nPassword temporanea: ${result.temporary_password}`);
-        setShowCreateCapoPromoter(false);
+        alert(`Promoter creato con successo!\nEmail: ${result.email}\nPassword temporanea: ${result.temporary_password}`);
+        setShowCreatePromoter(false);
         fetchDashboardData(); // Refresh dashboard data
       } else {
         const error = await response.json();
         alert(`Errore: ${error.detail}`);
       }
     } catch (error) {
-      console.error('Error creating capo promoter:', error);
-      alert('Errore durante la creazione del capo promoter');
+      console.error('Error creating promoter:', error);
+      alert('Errore durante la creazione del promoter');
     }
   };
 
