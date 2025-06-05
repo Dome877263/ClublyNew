@@ -1796,9 +1796,27 @@ function App() {
       {showUserSetup && <UserSetupModal />}
       {showBooking && selectedEvent && <BookingModal />}
       {showChat && <ChatModal />}
-      {showUserProfile && <UserProfileModal />}
       
-      {/* New Modals */}
+      {/* User Profile Modals */}
+      <UserProfileModal 
+        show={showUserProfile}
+        onClose={() => {
+          setShowUserProfile(false);
+          setSelectedUserProfile(null);
+        }}
+        userProfile={selectedUserProfile}
+      />
+      
+      <UserProfileModal 
+        show={showOwnProfile}
+        onClose={() => {
+          setShowOwnProfile(false);
+          setSelectedUserProfile(null);
+        }}
+        userProfile={selectedUserProfile}
+      />
+      
+      {/* Enhanced Modals */}
       <UserSearchModal 
         show={showUserSearch}
         onClose={() => setShowUserSearch(false)}
@@ -1810,7 +1828,8 @@ function App() {
       <CreateEventModal 
         show={showCreateEvent}
         onClose={() => setShowCreateEvent(false)}
-        onSubmit={currentUser?.ruolo === 'clubly_founder' ? createEventByFounder : createEventByPromoter}
+        onSubmit={handleCreateEvent}
+        userRole={currentUser?.ruolo}
       />
       
       <EditEventModal 
