@@ -726,7 +726,7 @@ function App() {
               ))}
             </div>
             <button 
-              onClick={() => alert('Funzione in sviluppo: Crea Credenziali Promoter')}
+              onClick={() => setShowCreatePromoter(true)}
               className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
             >
               🆔 Crea Credenziali
