@@ -312,7 +312,7 @@ function App() {
     }
   };
 
-  // New functions for enhanced features
+  // Enhanced functions for new features
   const viewUserProfile = async (userId) => {
     try {
       const response = await fetch(`${backendUrl}/api/users/${userId}/profile`, {
@@ -327,6 +327,23 @@ function App() {
     } catch (error) {
       console.error('Error fetching user profile:', error);
     }
+  };
+
+  const openOwnProfile = () => {
+    if (currentUser) {
+      setSelectedUserProfile(currentUser);
+      setShowOwnProfile(true);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setCurrentUser(null);
+    setCurrentView('main');
+    setDashboardData(null);
+    setChats([]);
+    setChatMessages([]);
+    setSelectedChat(null);
   };
 
   const openEditEvent = (event) => {
@@ -435,6 +452,15 @@ function App() {
     }
   };
 
+  // Enhanced event creation handler
+  const handleCreateEvent = (eventData, userRole) => {
+    if (userRole === 'clubly_founder') {
+      createEventByFounder(eventData);
+    } else {
+      createEventByPromoter(eventData);
+    }
+  };
+
   const createOrganization = async (orgData) => {
     try {
       const response = await fetch(`${backendUrl}/api/organizations`, {
@@ -506,10 +532,46 @@ function App() {
     }
   };
 
-  const openChat = (chat) => {
-    setChatMessages([]); // Clear previous messages first
-    setSelectedChat(chat);
-    fetchChatMessages(chat.id);
+  // Enhanced chat opening with proper state management
+  const openChat = async (chat) => {
+    // Clear previous chat state immediately
+    setChatMessages([]);
+    setSelectedChat(null);
+    setIsLoadingChatMessages(true);
+    
+    try {
+      // Set new chat
+      setSelectedChat(chat);
+      
+      // Fetch new messages
+      await fetchChatMessages(chat.id);
+    } catch (error) {
+      console.error('Error opening chat:', error);
+    } finally {
+      setIsLoadingChatMessages(false);
+    }
+  };
+
+  const fetchChatMessages = async (chatId) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/chats/${chatId}/messages`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setChatMessages(data);
+      }
+    } catch (error) {
+      console.error('Errore nel caricamento messaggi:', error);
+      setChatMessages([]); // Ensure clean state on error
+    }
+  };
+
+  // Enhanced message opening function for clickable usernames
+  const handleUsernameClick = (senderId) => {
+    if (senderId !== currentUser.id) {
+      viewUserProfile(senderId);
+    }
   };
 
   // Dashboard Components
