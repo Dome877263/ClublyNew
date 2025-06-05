@@ -565,6 +565,75 @@ export const CreateCapoPromoterModal = ({ show, onClose, onSubmit }) => {
   );
 };
 
+// Create Promoter Modal (for Capo Promoter)
+export const CreatePromoterModal = ({ show, onClose, onSubmit }) => {
+  const [userData, setUserData] = useState({
+    nome: '',
+    email: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(userData);
+  };
+
+  if (!show) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-blue-600 rounded-xl max-w-md w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">🎪 Crea Promoter</h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="text"
+              placeholder="Nome"
+              value={userData.nome}
+              onChange={(e) => setUserData({...userData, nome: e.target.value})}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+              required
+            />
+            
+            <input
+              type="email"
+              placeholder="Email"
+              value={userData.email}
+              onChange={(e) => setUserData({...userData, email: e.target.value})}
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+              required
+            />
+            
+            <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-3">
+              <p className="text-yellow-400 text-sm">
+                ⚠️ Verrà generata una password temporanea che l'utente dovrà cambiare al primo accesso.
+              </p>
+              <p className="text-blue-400 text-sm mt-2">
+                📝 Il promoter sarà assegnato automaticamente alla tua organizzazione.
+              </p>
+            </div>
+            
+            <button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-lg font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              🎪 Crea Promoter
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Organization Details Modal
 export const OrganizationDetailsModal = ({ show, onClose, organization, onViewProfile }) => {
   if (!show || !organization) return null;
