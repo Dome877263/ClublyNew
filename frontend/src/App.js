@@ -41,9 +41,11 @@ function App() {
   const [selectedEventToEdit, setSelectedEventToEdit] = useState(null);
   const [showCreateOrganization, setShowCreateOrganization] = useState(false);
   const [showCreateCapoPromoter, setShowCreateCapoPromoter] = useState(false);
+  const [showCreatePromoter, setShowCreatePromoter] = useState(false);
   const [showOrganizationDetails, setShowOrganizationDetails] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [isLoadingChatMessages, setIsLoadingChatMessages] = useState(false);
+  const [showEditOwnProfile, setShowEditOwnProfile] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
