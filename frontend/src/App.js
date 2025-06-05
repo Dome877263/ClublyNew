@@ -489,6 +489,35 @@ function App() {
     }
   };
 
+  const createCapoPromoter = async (userData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/users/temporary-credentials`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...userData,
+          ruolo: 'capo_promoter'
+        })
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        alert(`Capo Promoter creato con successo!\nEmail: ${result.email}\nPassword temporanea: ${result.temporary_password}`);
+        setShowCreateCapoPromoter(false);
+        fetchDashboardData(); // Refresh dashboard data
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error creating capo promoter:', error);
+      alert('Errore durante la creazione del capo promoter');
+    }
+  };
+
   const createPromoter = async (userData) => {
     try {
       const response = await fetch(`${backendUrl}/api/users/temporary-credentials`, {
