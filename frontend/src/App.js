@@ -552,21 +552,6 @@ function App() {
     }
   };
 
-  const fetchChatMessages = async (chatId) => {
-    try {
-      const response = await fetch(`${backendUrl}/api/chats/${chatId}/messages`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setChatMessages(data);
-      }
-    } catch (error) {
-      console.error('Errore nel caricamento messaggi:', error);
-      setChatMessages([]); // Ensure clean state on error
-    }
-  };
-
   // Enhanced message opening function for clickable usernames
   const handleUsernameClick = (senderId) => {
     if (senderId !== currentUser.id) {
