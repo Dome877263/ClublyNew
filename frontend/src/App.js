@@ -690,12 +690,10 @@ function App() {
               ))}
             </div>
             <div className="mt-4">
-              <button 
-                onClick={() => setShowCreateEvent(true)}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
-              >
-                ➕ Crea Evento
-              </button>
+              {/* Capo promoter non può creare eventi, solo modificarli */}
+              <p className="text-gray-400 text-sm text-center italic">
+                Come Capo Promoter puoi modificare gli eventi esistenti cliccando su di essi
+              </p>
             </div>
           </div>
 
