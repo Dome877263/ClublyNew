@@ -30,9 +30,10 @@ function App() {
   const [showUserSetup, setShowUserSetup] = useState(false);
   const [dashboardData, setDashboardData] = useState(null);
   
-  // New states for enhanced features
+  // Enhanced states for new features
   const [showUserProfile, setShowUserProfile] = useState(false);
   const [selectedUserProfile, setSelectedUserProfile] = useState(null);
+  const [showOwnProfile, setShowOwnProfile] = useState(false);
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [showCreateEvent, setShowCreateEvent] = useState(false);
@@ -42,6 +43,7 @@ function App() {
   const [showCreateCapoPromoter, setShowCreateCapoPromoter] = useState(false);
   const [showOrganizationDetails, setShowOrganizationDetails] = useState(false);
   const [selectedOrganization, setSelectedOrganization] = useState(null);
+  const [isLoadingChatMessages, setIsLoadingChatMessages] = useState(false);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
