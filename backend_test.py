@@ -927,32 +927,192 @@ def run_new_api_tests():
     
     print(f"\nNew API tests success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
 
+# Test login API for profile_image field
+def test_login_for_profile_image():
+    print("\n=== Testing login API for profile_image field ===")
+    
+    payload = {
+        "login": "admin",
+        "password": "admin123"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
+    
+    if response.status_code == 200:
+        data = response.json()
+        tokens["admin"] = data.get("token")
+        
+        # Check if profile_image field is present in the response
+        if "profile_image" in data["user"]:
+            print(f"✅ Login response includes profile_image field")
+            print(f"   Profile image: {data['user']['profile_image']}")
+            test_results["login_for_profile_image"] = True
+        else:
+            print(f"❌ Login response does not include profile_image field")
+            test_results["login_for_profile_image"] = False
+    else:
+        print(f"❌ Login failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+        test_results["login_for_profile_image"] = False
+    
+    return test_results["login_for_profile_image"]
+
+# Test chat management APIs
+def test_chat_management():
+    print("\n=== Testing chat management APIs ===")
+    
+    # First, we need to login as admin
+    if not tokens["admin"]:
+        test_login_with_username()
+    
+    if not tokens["admin"]:
+        print("❌ Cannot test chat management without admin token")
+        return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Test 1: Get user chats
+    print("Test 1: Get user chats")
+    response = requests.get(f"{BACKEND_URL}/user/chats", headers=headers)
+    
+    if response.status_code == 200:
+        chats = response.json()
+        print(f"✅ Get user chats successful. Chats count: {len(chats)}")
+        get_chats_success = True
+        
+        # If there are chats, test getting messages for the first chat
+        if chats:
+            chat_id = chats[0]["id"]
+            
+            # Test 2: Get chat messages
+            print("Test 2: Get chat messages")
+            response = requests.get(f"{BACKEND_URL}/chats/{chat_id}/messages", headers=headers)
+            
+            if response.status_code == 200:
+                messages = response.json()
+                print(f"✅ Get chat messages successful. Messages count: {len(messages)}")
+                get_messages_success = True
+                
+                # Test 3: Send a message
+                print("Test 3: Send a message")
+                message_payload = {
+                    "chat_id": chat_id,
+                    "sender_id": "",  # Will be filled from token
+                    "sender_role": "",  # Will be filled from token
+                    "message": f"Test message {random_string()}"
+                }
+                
+                response = requests.post(f"{BACKEND_URL}/chats/{chat_id}/messages", json=message_payload, headers=headers)
+                
+                if response.status_code == 200:
+                    print(f"✅ Send message successful")
+                    send_message_success = True
+                else:
+                    print(f"❌ Send message failed. Status code: {response.status_code}")
+                    print(f"Response: {response.text}")
+                    send_message_success = False
+            else:
+                print(f"❌ Get chat messages failed. Status code: {response.status_code}")
+                print(f"Response: {response.text}")
+                get_messages_success = False
+                send_message_success = False
+        else:
+            print("ℹ️ No chats found to test messages")
+            get_messages_success = True  # Skip this test
+            send_message_success = True  # Skip this test
+    else:
+        print(f"❌ Get user chats failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+        get_chats_success = False
+        get_messages_success = False
+        send_message_success = False
+    
+    # Overall success if all tests passed
+    test_results["chat_management"] = get_chats_success and get_messages_success and send_message_success
+    
+    return test_results["chat_management"]
+
 if __name__ == "__main__":
-    # Run only the capo promoter event update tests
-    print("\n=== Running capo promoter event update tests ===\n")
+    # Add the new tests to the test_results dictionary
+    test_results["login_for_profile_image"] = False
+    test_results["chat_management"] = False
     
-    # Login as capo_promoter
-    test_login_with_capo_promoter()
+    print("\n=== Running regression tests for key APIs ===\n")
     
-    # Run the capo promoter event update tests
-    test_capo_promoter_event_update_allowed_fields()
-    test_capo_promoter_event_update_restricted_fields()
-    test_promoter_event_update_authorization()
+    # Test login with profile_image
+    test_login_for_profile_image()
+    
+    # Test user profile viewing
+    test_user_profile_viewing()
+    
+    # Test event creation APIs
+    test_login_with_username()  # Login as clubly_founder for /api/events
+    
+    # Test event creation by clubly_founder
+    print("\n=== Testing event creation by clubly_founder API ===")
+    if tokens["admin"]:
+        headers = {
+            "Authorization": f"Bearer {tokens['admin']}"
+        }
+        
+        # Generate a random event name
+        event_name = f"Founder Event {random_string()}"
+        
+        # Get tomorrow's date
+        tomorrow = (datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        payload = {
+            "name": event_name,
+            "date": tomorrow,
+            "start_time": "21:00",
+            "location": "Founder Club, Milano",
+            "organization": "Night Events Milano",
+            "end_time": "05:00",
+            "lineup": ["DJ Founder", "DJ VIP"],
+            "guests": ["Special Guest"],
+            "total_tables": 15,
+            "tables_available": 15,
+            "max_party_size": 10
+        }
+        
+        response = requests.post(f"{BACKEND_URL}/events", json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"✅ Event creation by clubly_founder API successful. Event ID: {data.get('event_id')}")
+            test_results["event_creation_by_clubly_founder"] = True
+        else:
+            print(f"❌ Event creation by clubly_founder API failed. Status code: {response.status_code}")
+            print(f"Response: {response.text}")
+            test_results["event_creation_by_clubly_founder"] = False
+    else:
+        print("❌ Cannot test event creation by clubly_founder without admin token")
+        test_results["event_creation_by_clubly_founder"] = False
+    
+    # Test event creation by promoter
+    test_event_creation_by_promoter()
+    
+    # Test chat management
+    test_chat_management()
     
     # Print summary
-    print("\n=== Capo Promoter Event Update Tests Summary ===")
-    update_tests = [
-        "capo_promoter_event_update_allowed_fields",
-        "capo_promoter_event_update_restricted_fields",
-        "promoter_event_update_authorization"
+    print("\n=== Regression Test Results Summary ===")
+    regression_tests = [
+        "login_for_profile_image",
+        "user_profile_viewing",
+        "event_creation_by_clubly_founder",
+        "event_creation_by_promoter",
+        "chat_management"
     ]
-    for test_name in update_tests:
-        status = "✅ PASS" if test_results[test_name] else "❌ FAIL"
+    for test_name in regression_tests:
+        status = "✅ PASS" if test_results.get(test_name, False) else "❌ FAIL"
         print(f"{status} - {test_name}")
     
-    # Calculate success rate for update tests
-    success_count = sum(1 for test_name in update_tests if test_results[test_name])
-    total_count = len(update_tests)
+    # Calculate success rate for regression tests
+    success_count = sum(1 for test_name in regression_tests if test_results.get(test_name, False))
+    total_count = len(regression_tests)
     success_rate = (success_count / total_count) * 100
     
-    print(f"\nCapo promoter event update tests success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
+    print(f"\nRegression tests success rate: {success_rate:.2f}% ({success_count}/{total_count} tests passed)")
