@@ -1,5 +1,119 @@
 import React, { useState } from 'react';
 
+// User Profile Modal
+export const UserProfileModal = ({ show, onClose, userProfile }) => {
+  if (!show || !userProfile) return null;
+
+  const getRoleIcon = (role) => {
+    switch(role) {
+      case 'clubly_founder': return '👑';
+      case 'capo_promoter': return '🎯';
+      case 'promoter': return '🎪';
+      case 'cliente': return '🎉';
+      default: return '👤';
+    }
+  };
+
+  const getRoleName = (role) => {
+    switch(role) {
+      case 'clubly_founder': return 'Clubly Founder';
+      case 'capo_promoter': return 'Capo Promoter';
+      case 'promoter': return 'Promoter';
+      case 'cliente': return 'Cliente';
+      default: return 'Utente';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-purple-600 rounded-xl max-w-2xl w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">👤 Profilo Utente</h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-purple-400 text-2xl font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-6">
+            {/* Profile Image */}
+            <div className="flex-shrink-0">
+              {userProfile.profile_image ? (
+                <img 
+                  src={userProfile.profile_image} 
+                  alt={`${userProfile.nome} ${userProfile.cognome}`}
+                  className="w-32 h-32 rounded-full object-cover border-4 border-purple-500"
+                />
+              ) : (
+                <div className="w-32 h-32 bg-gradient-to-br from-purple-600 to-purple-700 rounded-full flex items-center justify-center border-4 border-purple-500">
+                  <span className="text-white font-bold text-4xl">
+                    {userProfile.nome?.charAt(0)?.toUpperCase() || '?'}
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            {/* User Information */}
+            <div className="flex-1 space-y-4 text-center md:text-left">
+              <div>
+                <h3 className="text-white text-2xl font-bold">
+                  {userProfile.nome} {userProfile.cognome}
+                </h3>
+                <p className="text-purple-400 text-lg font-semibold">
+                  @{userProfile.username}
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-gray-400 text-sm">Ruolo</p>
+                  <p className="text-white font-semibold flex items-center space-x-2">
+                    <span>{getRoleIcon(userProfile.ruolo)}</span>
+                    <span>{getRoleName(userProfile.ruolo)}</span>
+                  </p>
+                </div>
+                
+                <div className="bg-gray-800 rounded-lg p-3">
+                  <p className="text-gray-400 text-sm">Città</p>
+                  <p className="text-white font-semibold">📍 {userProfile.citta}</p>
+                </div>
+                
+                {userProfile.organization && (
+                  <div className="bg-gray-800 rounded-lg p-3 md:col-span-2">
+                    <p className="text-gray-400 text-sm">Organizzazione</p>
+                    <p className="text-white font-semibold">🏢 {userProfile.organization}</p>
+                  </div>
+                )}
+                
+                <div className="bg-gray-800 rounded-lg p-3 md:col-span-2">
+                  <p className="text-gray-400 text-sm">Membro da</p>
+                  <p className="text-white font-semibold">
+                    📅 {new Date(userProfile.created_at).toLocaleDateString('it-IT', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    })}
+                  </p>
+                </div>
+              </div>
+              
+              {userProfile.biografia && (
+                <div className="bg-gray-800 rounded-lg p-4">
+                  <p className="text-gray-400 text-sm mb-2">Biografia</p>
+                  <p className="text-gray-300 leading-relaxed">{userProfile.biografia}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // User Search Modal
 export const UserSearchModal = ({ show, onClose, onSearch, searchResults, onViewProfile }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -128,7 +242,7 @@ export const UserSearchModal = ({ show, onClose, onSearch, searchResults, onView
 };
 
 // Create Event Modal
-export const CreateEventModal = ({ show, onClose, onSubmit }) => {
+export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
   const [eventData, setEventData] = useState({
     name: '',
     date: '',
@@ -152,7 +266,7 @@ export const CreateEventModal = ({ show, onClose, onSubmit }) => {
       total_tables: parseInt(eventData.total_tables) || 0,
       max_party_size: parseInt(eventData.max_party_size) || 10
     };
-    onSubmit(formattedData);
+    onSubmit(formattedData, userRole);
   };
 
   if (!show) return null;
