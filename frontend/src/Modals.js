@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
 // User Profile Modal
+export { UserProfileModal, UserSearchModal, CreateEventModal, CreateOrganizationModal, CreateCapoPromoterModal, CreatePromoterModal, OrganizationDetailsModal, EditEventModal, EditProfileModal };
 export const UserProfileModal = ({ show, onClose, userProfile, isOwnProfile, onEdit }) => {
   if (!show || !userProfile) return null;
 
