@@ -645,12 +645,12 @@ function App() {
                 </div>
               ))}
             </div>
-            <button 
-              onClick={() => setShowCreateEvent(true)}
-              className="mt-4 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
-            >
-              ➕ Crea Evento
-            </button>
+            {/* Removed "Crea Evento" button - only Clubly Founder can create events */}
+            <div className="mt-4">
+              <p className="text-gray-400 text-sm text-center italic">
+                Gli eventi vengono creati dal Clubly Founder
+              </p>
+            </div>
           </div>
 
           {/* Membri del team */}
