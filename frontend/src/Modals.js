@@ -274,8 +274,8 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
     e.preventDefault();
     const formattedData = {
       ...eventData,
-      lineup: eventData.lineup ? eventData.lineup.split(',').map(dj => dj.trim()) : [],
-      table_types: eventData.table_types ? eventData.table_types.split(',').map(type => type.trim()) : [],
+      lineup: eventData.lineup ? eventData.lineup.split(',').map(dj => dj.trim()).filter(dj => dj) : [],
+      table_types: eventData.table_types ? eventData.table_types.split(',').map(type => type.trim()).filter(type => type) : [],
       total_tables: parseInt(eventData.total_tables) || 0,
       max_party_size: parseInt(eventData.max_party_size) || 10
     };
@@ -322,23 +322,14 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
                 required
               />
               
-              <select
+              <input
+                type="time"
+                placeholder="Orario di inizio *"
                 value={eventData.start_time}
                 onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
                 className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                 required
-              >
-                <option value="">Orario di inizio *</option>
-                <option value="18:00">18:00</option>
-                <option value="19:00">19:00</option>
-                <option value="20:00">20:00</option>
-                <option value="21:00">21:00</option>
-                <option value="22:00">22:00</option>
-                <option value="22:30">22:30</option>
-                <option value="23:00">23:00</option>
-                <option value="23:30">23:30</option>
-                <option value="00:00">00:00</option>
-              </select>
+              />
               
               <input
                 type="text"
@@ -362,27 +353,31 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
                 className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
               />
               
-              <select
+              <input
+                type="time"
+                placeholder="Orario di fine"
                 value={eventData.end_time}
                 onChange={(e) => setEventData({...eventData, end_time: e.target.value})}
                 className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-              >
-                <option value="">Orario di fine</option>
-                <option value="01:00">01:00</option>
-                <option value="02:00">02:00</option>
-                <option value="03:00">03:00</option>
-                <option value="04:00">04:00</option>
-                <option value="05:00">05:00</option>
-                <option value="06:00">06:00</option>
-              </select>
-              
-              <input
-                type="text"
-                placeholder="Line-up DJ (separati da virgola)"
-                value={eventData.lineup}
-                onChange={(e) => setEventData({...eventData, lineup: e.target.value})}
-                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
               />
+              
+              {/* Enhanced DJ Lineup Input */}
+              <div className="col-span-full">
+                <label className="text-blue-400 font-bold block mb-2">🎵 Line-up DJ</label>
+                <textarea
+                  placeholder="Inserisci i nomi dei DJ, uno per riga o separati da virgola"
+                  value={eventData.lineup}
+                  onChange={(e) => setEventData({...eventData, lineup: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                  rows="3"
+                />
+                <div className="flex items-center space-x-2 mt-2">
+                  <span className="text-gray-400 text-xs">💡 Esempi:</span>
+                  <span className="text-blue-400 text-xs">DJ Marco, DJ Sara</span>
+                  <span className="text-gray-500 text-xs">oppure</span>
+                  <span className="text-blue-400 text-xs">un DJ per riga</span>
+                </div>
+              </div>
               
               <input
                 type="text"
