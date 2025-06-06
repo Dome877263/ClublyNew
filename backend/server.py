@@ -147,17 +147,24 @@ def assign_promoter_to_event(event_id: str) -> str:
     if not event:
         return None
     
-    # Trova un promoter della stessa organizzazione se possibile
+    # Prima prova a trovare un promoter della stessa organizzazione dell'evento
     promoter = db.users.find_one({
         "ruolo": "promoter",
         "organization": event.get("organization"),
         "status": "available"
     })
     
-    # Se non trova nessuno nella stessa organizzazione, prende qualsiasi promoter
+    # Se non trova nessuno nella stessa organizzazione, prova con un capo_promoter
     if not promoter:
         promoter = db.users.find_one({
-            "ruolo": "promoter",
+            "ruolo": "capo_promoter", 
+            "organization": event.get("organization")
+        })
+    
+    # Se ancora non trova nessuno, prende qualsiasi promoter disponibile
+    if not promoter:
+        promoter = db.users.find_one({
+            "ruolo": {"$in": ["promoter", "capo_promoter"]},
             "status": "available"
         })
     
