@@ -729,6 +729,126 @@ export const OrganizationDetailsModal = ({ show, onClose, organization, onViewPr
 };
 
 // Edit Event Modal for Capo Promoter
+// Edit Profile Modal for own profile editing
+export const EditProfileModal = ({ show, onClose, currentUser, onSubmit }) => {
+  const [profileData, setProfileData] = useState({
+    nome: '',
+    username: '',
+    biografia: '',
+    citta: ''
+  });
+
+  // Initialize form data when user changes
+  React.useEffect(() => {
+    if (currentUser) {
+      setProfileData({
+        nome: currentUser.nome || '',
+        username: currentUser.username || '',
+        biografia: currentUser.biografia || '',
+        citta: currentUser.citta || ''
+      });
+    }
+  }, [currentUser]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(profileData);
+  };
+
+  if (!show || !currentUser) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-blue-600 rounded-xl max-w-md w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">✏️ Modifica Profilo</h2>
+            <button 
+              onClick={onClose}
+              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4 mb-6">
+            <h4 className="text-blue-400 font-bold text-sm mb-2">📝 Campi Modificabili</h4>
+            <p className="text-blue-300 text-xs">
+              Puoi modificare: <strong>Nome, Username, Biografia e Città</strong>
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-blue-400 font-bold block mb-2">👤 Nome</label>
+              <input
+                type="text"
+                placeholder="Il tuo nome"
+                value={profileData.nome}
+                onChange={(e) => setProfileData({...profileData, nome: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-blue-400 font-bold block mb-2">🆔 Username</label>
+              <input
+                type="text"
+                placeholder="Il tuo username"
+                value={profileData.username}
+                onChange={(e) => setProfileData({...profileData, username: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                required
+              />
+              <p className="text-gray-400 text-xs mt-1">L'username deve essere unico</p>
+            </div>
+
+            <div>
+              <label className="text-blue-400 font-bold block mb-2">📍 Città</label>
+              <input
+                type="text"
+                placeholder="La tua città"
+                value={profileData.citta}
+                onChange={(e) => setProfileData({...profileData, citta: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-blue-400 font-bold block mb-2">📝 Biografia</label>
+              <textarea
+                placeholder="Racconta qualcosa di te..."
+                value={profileData.biografia}
+                onChange={(e) => setProfileData({...profileData, biografia: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                rows="3"
+              />
+            </div>
+            
+            <div className="flex space-x-4 pt-4">
+              <button 
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-bold transition-colors"
+              >
+                Annulla
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                💾 Salva Modifiche
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
   const [eventData, setEventData] = useState({
     name: '',
