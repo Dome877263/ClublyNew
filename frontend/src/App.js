@@ -1883,6 +1883,7 @@ function App() {
           setSelectedUserProfile(null);
         }}
         userProfile={selectedUserProfile}
+        isOwnProfile={false}
       />
       
       <UserProfileModal 
@@ -1892,6 +1893,19 @@ function App() {
           setSelectedUserProfile(null);
         }}
         userProfile={selectedUserProfile}
+        isOwnProfile={true}
+        onEdit={() => {
+          setShowOwnProfile(false);
+          setShowEditOwnProfile(true);
+        }}
+      />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal 
+        show={showEditOwnProfile}
+        onClose={() => setShowEditOwnProfile(false)}
+        currentUser={currentUser}
+        onSubmit={editUserProfile}
       />
       
       {/* Enhanced Modals */}
