@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // User Profile Modal
-export const UserProfileModal = ({ show, onClose, userProfile }) => {
+export const UserProfileModal = ({ show, onClose, userProfile, isOwnProfile, onEdit }) => {
   if (!show || !userProfile) return null;
 
   const getRoleIcon = (role) => {
@@ -104,6 +104,19 @@ export const UserProfileModal = ({ show, onClose, userProfile }) => {
                 <div className="bg-gray-800 rounded-lg p-4">
                   <p className="text-gray-400 text-sm mb-2">Biografia</p>
                   <p className="text-gray-300 leading-relaxed">{userProfile.biografia}</p>
+                </div>
+              )}
+
+              {/* Edit Button - Only show if this is user's own profile */}
+              {isOwnProfile && (
+                <div className="mt-6">
+                  <button 
+                    onClick={onEdit}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition-colors flex items-center space-x-2 mx-auto md:mx-0"
+                  >
+                    <span>✏️</span>
+                    <span>Modifica Profilo</span>
+                  </button>
                 </div>
               )}
             </div>
