@@ -494,11 +494,8 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Visualizzazione profilo utente"
-    - "Ricerca utenti con filtri"
-    - "Creazione eventi da promoter"
-    - "Dettagli organizzazione"
-    - "Capo Promoter Event Update API"
+    - "Profile Edit API"
+    - "Enhanced User Search API"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
