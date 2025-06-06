@@ -1028,6 +1028,45 @@ async def search_users(search_params: UserSearch, current_user = Depends(verify_
         "created_at": user["created_at"]
     } for user in users]
 
+# Profile editing endpoint
+class ProfileEdit(BaseModel):
+    nome: str
+    username: str
+    biografia: Optional[str] = ""
+    citta: str
+
+@app.put("/api/user/profile/edit")
+async def edit_user_profile(profile_data: ProfileEdit, current_user = Depends(verify_jwt_token)):
+    """Edit user profile - nome, username, biografia, città"""
+    # Check if username is already taken by another user
+    existing_user = db.users.find_one({
+        "username": profile_data.username,
+        "id": {"$ne": current_user["id"]}
+    })
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username già esistente")
+    
+    # Update user profile
+    update_data = {
+        "nome": profile_data.nome,
+        "username": profile_data.username,
+        "biografia": profile_data.biografia or "",
+        "citta": profile_data.citta,
+        "updated_at": datetime.utcnow()
+    }
+    
+    result = db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    
+    # Return updated user data
+    updated_user = db.users.find_one({"id": current_user["id"]}, {"_id": 0, "password": 0})
+    return {"message": "Profilo aggiornato con successo", "user": updated_user}
+
 # Event creation for promoters
 @app.post("/api/events/create-by-promoter")
 async def create_event_by_promoter(event: EventCreate, current_user = Depends(verify_jwt_token)):
