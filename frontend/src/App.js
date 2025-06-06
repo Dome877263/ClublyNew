@@ -549,6 +549,35 @@ function App() {
     }
   };
 
+  // Profile editing function
+  const editUserProfile = async (profileData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/user/profile/edit`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(profileData)
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        // Update current user data
+        setCurrentUser(result.user);
+        setSelectedUserProfile(result.user);
+        setShowEditOwnProfile(false);
+        alert('Profilo aggiornato con successo!');
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      alert('Errore durante l\'aggiornamento del profilo');
+    }
+  };
+
   const viewOrganizationDetails = async (orgId) => {
     try {
       const response = await fetch(`${backendUrl}/api/organizations/${orgId}`, {
