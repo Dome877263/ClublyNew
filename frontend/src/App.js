@@ -9,7 +9,8 @@ import {
   CreateOrganizationModal, 
   CreateCapoPromoterModal,
   CreatePromoterModal,
-  OrganizationDetailsModal 
+  OrganizationDetailsModal,
+  EditProfileModal
 } from './Modals';
 
 function App() {
