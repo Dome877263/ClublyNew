@@ -335,8 +335,21 @@ function App() {
 
   const openOwnProfile = () => {
     if (currentUser) {
-      setSelectedUserProfile(currentUser);
-      setShowOwnProfile(true);
+      // Fetch fresh profile data when opening own profile
+      fetch(`${backendUrl}/api/user/profile`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      })
+      .then(response => response.json())
+      .then(profile => {
+        setSelectedUserProfile(profile);
+        setShowOwnProfile(true);
+      })
+      .catch(error => {
+        console.error('Error fetching profile:', error);
+        // Fallback to current user data
+        setSelectedUserProfile(currentUser);
+        setShowOwnProfile(true);
+      });
     }
   };
 
