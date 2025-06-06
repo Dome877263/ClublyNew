@@ -126,6 +126,9 @@ backend:
       - working: true
         agent: "main"
         comment: "API endpoint /api/users/{user_id}/profile implementata per visualizzare profili pubblici con tutte le informazioni richieste: nome, cognome, username, foto profilo, città e biografia."
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/users/{user_id}/profile restituisce correttamente tutti i dati del profilo utente inclusi nome, cognome, username, foto profilo, città e biografia."
 
   - task: "User Search API with Filters"
     implemented: true
@@ -138,6 +141,21 @@ backend:
       - working: true
         agent: "main"
         comment: "API endpoint /api/users/search implementata con filtri per nome, ruolo e date di creazione. Supporta ricerca testuale e filtri multipli."
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API /api/users/search funziona correttamente con diversi filtri: ricerca testuale, filtro per ruolo e filtro per data di creazione. La ricerca vuota restituisce tutti gli utenti. Verificato che i risultati contengono i campi corretti inclusi username, biografia e foto profilo."
+        
+  - task: "Profile Edit API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API PUT /api/user/profile/edit permette a un utente autenticato di modificare il proprio profilo (nome, username, biografia, città). Verificato che l'unicità dello username viene correttamente controllata, che i dati aggiornati vengono restituiti nella risposta e che l'autenticazione è richiesta per accedere all'endpoint."
 
   - task: "Event Creation by Promoter API"
     implemented: true
