@@ -48,6 +48,8 @@ function App() {
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [isLoadingChatMessages, setIsLoadingChatMessages] = useState(false);
   const [showEditOwnProfile, setShowEditOwnProfile] = useState(false);
+  const [availablePromoters, setAvailablePromoters] = useState([]);
+  const [selectedPromoterId, setSelectedPromoterId] = useState(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
