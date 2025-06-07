@@ -1022,12 +1022,12 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
   );
 };
 
-// Create Organization Modal
+// Create Organization Modal - REMOVED capo_promoter_username field
 export const CreateOrganizationModal = ({ show, onClose, onSubmit }) => {
   const [orgData, setOrgData] = useState({
     name: '',
-    location: '',
-    capo_promoter_username: ''
+    location: ''
+    // Removed capo_promoter_username - will be assigned later via edit
   });
 
   const handleSubmit = (e) => {
