@@ -363,6 +363,224 @@ export const EditOrganizationModal = ({ show, onClose, organization, availableCa
   );
 };
 
+// Change Password Modal
+export const ChangePasswordModal = ({ show, onClose, onSubmit }) => {
+  const [passwordData, setPasswordData] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (passwordData.new_password !== passwordData.confirm_password) {
+      alert('Le password non coincidono!');
+      return;
+    }
+    
+    if (passwordData.new_password.length < 6) {
+      alert('La password deve essere di almeno 6 caratteri!');
+      return;
+    }
+    
+    onSubmit({
+      current_password: passwordData.current_password,
+      new_password: passwordData.new_password
+    });
+  };
+
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  if (!show) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-gray-900 border border-yellow-600 rounded-xl max-w-md w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">🔒 Cambia Password</h2>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-yellow-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-4 mb-6">
+            <h4 className="text-yellow-400 font-bold text-sm mb-2">⚠️ Primo Accesso</h4>
+            <p className="text-yellow-300 text-xs">
+              È necessario cambiare la password temporanea per accedere al sistema.
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-yellow-400 font-bold block mb-2">🔐 Password Attuale</label>
+              <input
+                type="password"
+                placeholder="Inserisci la password temporanea"
+                value={passwordData.current_password}
+                onChange={(e) => setPasswordData({...passwordData, current_password: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 outline-none transition-all"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-yellow-400 font-bold block mb-2">🆕 Nuova Password</label>
+              <input
+                type="password"
+                placeholder="Inserisci la nuova password"
+                value={passwordData.new_password}
+                onChange={(e) => setPasswordData({...passwordData, new_password: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 outline-none transition-all"
+                required
+                minLength="6"
+              />
+            </div>
+
+            <div>
+              <label className="text-yellow-400 font-bold block mb-2">✅ Conferma Password</label>
+              <input
+                type="password"
+                placeholder="Conferma la nuova password"
+                value={passwordData.confirm_password}
+                onChange={(e) => setPasswordData({...passwordData, confirm_password: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 outline-none transition-all"
+                required
+                minLength="6"
+              />
+            </div>
+            
+            <button 
+              type="submit" 
+              className="w-full bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-700 hover:to-yellow-800 text-black py-3 rounded-lg font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
+            >
+              🔒 Cambia Password
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Edit Organization Modal 
+export const EditOrganizationModal = ({ show, onClose, organization, availableCapoPromoters = [], onSubmit }) => {
+  const [orgData, setOrgData] = useState({
+    capo_promoter_id: ''
+  });
+
+  // Initialize form data when organization changes
+  React.useEffect(() => {
+    if (organization) {
+      setOrgData({
+        capo_promoter_id: organization.capo_promoter_id || ''
+      });
+    }
+  }, [organization]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(organization.id, orgData);
+  };
+
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  if (!show || !organization) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-gray-900 border border-purple-600 rounded-xl max-w-md w-full shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">✏️ Modifica Organizzazione</h2>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-purple-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="bg-purple-900/30 border border-purple-600 rounded-lg p-4 mb-6">
+            <h4 className="text-purple-400 font-bold text-sm mb-2">🏢 Organizzazione</h4>
+            <p className="text-purple-300 text-sm">
+              <strong>Nome:</strong> {organization.name}
+            </p>
+            <p className="text-purple-300 text-sm">
+              <strong>Città:</strong> {organization.location}
+            </p>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-purple-400 font-bold block mb-2">🎯 Capo Promoter</label>
+              <select
+                value={orgData.capo_promoter_id}
+                onChange={(e) => setOrgData({...orgData, capo_promoter_id: e.target.value})}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+              >
+                <option value="">Seleziona capo promoter...</option>
+                {availableCapoPromoters.map(capo => (
+                  <option key={capo.id} value={capo.id}>
+                    {capo.nome} {capo.cognome} (@{capo.username})
+                  </option>
+                ))}
+              </select>
+              <p className="text-gray-400 text-xs mt-1">
+                Seleziona un capo promoter tra quelli disponibili
+              </p>
+            </div>
+            
+            <div className="flex space-x-4 pt-4">
+              <button 
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-bold transition-colors"
+              >
+                Annulla
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                💾 Salva Modifiche
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // User Search Modal
 export const UserSearchModal = ({ show, onClose, onSearch, searchResults, onViewProfile }) => {
   const [searchTerm, setSearchTerm] = useState('');
