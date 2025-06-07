@@ -5,7 +5,7 @@ import string
 import jwt
 
 # Get the backend URL from the frontend .env file
-BACKEND_URL = "https://95cdc01d-3310-49c6-b100-30c28522e956.preview.emergentagent.com/api"
+BACKEND_URL = "https://87b7f660-8098-4ebb-abea-271b7be8b6f7.preview.emergentagent.com/api"
 
 # Test results
 test_results = {
