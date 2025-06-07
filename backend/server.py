@@ -71,6 +71,7 @@ class EventCreate(BaseModel):
 class OrganizationCreate(BaseModel):
     name: str
     location: str
+    # Removed capo_promoter_username - will be assigned later
 
 class TemporaryCredentials(BaseModel):
     nome: str
