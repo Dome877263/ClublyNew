@@ -150,33 +150,57 @@ def verify_jwt_token(credentials: HTTPAuthorizationCredentials = Depends(securit
         raise HTTPException(status_code=401, detail="Token non valido")
 
 def assign_promoter_to_event(event_id: str) -> str:
-    """Trova un promoter disponibile per l'evento"""
+    """Trova il promoter con meno prenotazioni per l'evento"""
     event = db.events.find_one({"id": event_id})
     if not event:
         return None
     
-    # Prima prova a trovare un promoter della stessa organizzazione dell'evento
-    promoter = db.users.find_one({
-        "ruolo": "promoter",
+    # Ottieni tutti i promoter della stessa organizzazione dell'evento
+    promoters = list(db.users.find({
+        "ruolo": {"$in": ["promoter", "capo_promoter"]},
         "organization": event.get("organization"),
         "status": "available"
-    })
+    }))
     
-    # Se non trova nessuno nella stessa organizzazione, prova con un capo_promoter
-    if not promoter:
-        promoter = db.users.find_one({
-            "ruolo": "capo_promoter", 
-            "organization": event.get("organization")
-        })
-    
-    # Se ancora non trova nessuno, prende qualsiasi promoter disponibile
-    if not promoter:
-        promoter = db.users.find_one({
+    if not promoters:
+        # Se non ci sono promoter nella stessa organizzazione, prova con qualsiasi promoter
+        promoters = list(db.users.find({
             "ruolo": {"$in": ["promoter", "capo_promoter"]},
             "status": "available"
-        })
+        }))
     
-    return promoter["id"] if promoter else None
+    if not promoters:
+        return None
+    
+    # Conta le prenotazioni per ogni promoter
+    promoter_bookings = {}
+    for promoter in promoters:
+        booking_count = db.bookings.count_documents({
+            "promoter_id": promoter["id"],
+            "status": {"$in": ["pending", "confirmed"]}
+        })
+        promoter_bookings[promoter["id"]] = booking_count
+    
+    # Trova il promoter con meno prenotazioni
+    min_bookings_promoter_id = min(promoter_bookings, key=promoter_bookings.get)
+    
+    return min_bookings_promoter_id
+
+def validate_event_datetime(date_str: str, time_str: str) -> bool:
+    """Valida che data e ora dell'evento non siano nel passato"""
+    try:
+        from datetime import datetime, timedelta
+        
+        # Combina data e ora
+        event_datetime_str = f"{date_str} {time_str}"
+        event_datetime = datetime.strptime(event_datetime_str, "%Y-%m-%d %H:%M")
+        
+        # Aggiungi un margine di 1 ora per permettere eventi molto vicini
+        now = datetime.now() - timedelta(hours=1)
+        
+        return event_datetime > now
+    except:
+        return False
 
 # Initialize default data
 def initialize_default_data():
