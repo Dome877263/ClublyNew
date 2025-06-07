@@ -860,12 +860,17 @@ async def create_temporary_credentials(creds: TemporaryCredentials, current_user
     if db.users.find_one({"email": creds.email}):
         raise HTTPException(status_code=400, detail="Email già esistente")
     
+    # Verify organization exists
+    if not db.organizations.find_one({"name": creds.organization}):
+        raise HTTPException(status_code=400, detail="Organizzazione non trovata")
+    
     # Set organization for promoters created by capo_promoter
     organization = creds.organization
     if current_user["ruolo"] == "capo_promoter":
-        # Get current user's organization
+        # Get current user's organization and ensure they can only create for their org
         user = db.users.find_one({"id": current_user["id"]})
-        organization = user.get("organization")
+        if user.get("organization") != creds.organization:
+            raise HTTPException(status_code=403, detail="Puoi creare credenziali solo per la tua organizzazione")
     
     # Create temporary user
     user_data = {
@@ -893,7 +898,8 @@ async def create_temporary_credentials(creds: TemporaryCredentials, current_user
         "message": "Credenziali temporanee create con successo",
         "user_id": user_data["id"],
         "email": creds.email,
-        "temporary_password": creds.password
+        "temporary_password": creds.password,
+        "organization": organization
     }
 
 # Dashboard data endpoints
