@@ -1084,15 +1084,6 @@ export const CreateOrganizationModal = ({ show, onClose, onSubmit }) => {
               required
             />
             
-            <input
-              type="text"
-              placeholder="Username capo promoter"
-              value={orgData.capo_promoter_username}
-              onChange={(e) => setOrgData({...orgData, capo_promoter_username: e.target.value})}
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-              required
-            />
-            
             <button 
               type="submit" 
               className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 rounded-lg font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg"
