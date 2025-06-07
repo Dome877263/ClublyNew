@@ -1134,6 +1134,31 @@ async def get_organization_details(org_id: str, current_user = Depends(verify_jw
         "events": events
     }
 
+# Get PR/Promoters for specific organization (for booking)
+@app.get("/api/organizations/{organization_name}/promoters")
+async def get_organization_promoters(organization_name: str, current_user = Depends(verify_jwt_token)):
+    """Get all promoters and capo_promoters for an organization (for client booking selection)"""
+    # Get organization promoters
+    promoters = list(db.users.find(
+        {
+            "organization": organization_name,
+            "ruolo": {"$in": ["promoter", "capo_promoter"]}
+        }, 
+        {
+            "_id": 0, 
+            "password": 0,
+            "id": 1,
+            "nome": 1,
+            "cognome": 1,
+            "username": 1,
+            "profile_image": 1,
+            "ruolo": 1,
+            "biografia": 1
+        }
+    ).sort("ruolo", 1))
+    
+    return promoters
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
