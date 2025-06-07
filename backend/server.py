@@ -872,6 +872,7 @@ async def create_temporary_credentials(creds: TemporaryCredentials, current_user
         "organization": organization,
         "profile_image": None,
         "needs_setup": True,
+        "needs_password_change": True,  # Must change password on first login
         "status": "available" if creds.ruolo == "promoter" else None,
         "created_by": current_user["id"],
         "created_at": datetime.utcnow()
