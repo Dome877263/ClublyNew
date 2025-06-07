@@ -220,11 +220,24 @@ function App() {
     }
   };
 
-  const handleBookNow = (event) => {
+  const handleBookNow = async (event) => {
     setSelectedEvent(event);
     if (!currentUser) {
       setShowAuth(true);
     } else {
+      // Fetch available promoters for this event's organization
+      try {
+        const response = await fetch(`${backendUrl}/api/organizations/${event.organization}/promoters`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+        });
+        if (response.ok) {
+          const promoters = await response.json();
+          setAvailablePromoters(promoters);
+        }
+      } catch (error) {
+        console.error('Error fetching promoters:', error);
+        setAvailablePromoters([]);
+      }
       setShowBooking(true);
     }
   };
