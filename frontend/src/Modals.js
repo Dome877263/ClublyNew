@@ -24,15 +24,29 @@ export const UserProfileModal = ({ show, onClose, userProfile, isOwnProfile, onE
     }
   };
 
+  // Fix per il problema di chiusura - gestione click sul backdrop
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-purple-600 rounded-xl max-w-2xl w-full shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">👤 Profilo Utente</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-purple-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-purple-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -107,12 +121,16 @@ export const UserProfileModal = ({ show, onClose, userProfile, isOwnProfile, onE
                 </div>
               )}
 
-              {/* Edit Button - Only show if this is user's own profile */}
+              {/* Edit Button - Always show if this is user's own profile */}
               {isOwnProfile && (
                 <div className="mt-6">
                   <button 
-                    onClick={onEdit}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit && onEdit();
+                    }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-bold transition-colors flex items-center space-x-2 mx-auto md:mx-0"
+                    type="button"
                   >
                     <span>✏️</span>
                     <span>Modifica Profilo</span>
@@ -144,17 +162,31 @@ export const UserSearchModal = ({ show, onClose, onSearch, searchResults, onView
     onSearch(searchParams);
   };
 
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-purple-600 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">🔍 Ricerca Utenti Clubly</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-purple-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-purple-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -202,6 +234,7 @@ export const UserSearchModal = ({ show, onClose, onSearch, searchResults, onView
           <button 
             onClick={handleSearch}
             className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-bold transition-colors mb-6"
+            type="button"
           >
             🔍 Cerca
           </button>
@@ -254,7 +287,7 @@ export const UserSearchModal = ({ show, onClose, onSearch, searchResults, onView
   );
 };
 
-// Create Event Modal
+// Create Event Modal - MIGLIORATO con orario libero e design DJ migliorato
 export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
   const [eventData, setEventData] = useState({
     name: '',
@@ -263,18 +296,36 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
     location: '',
     organization: '',
     end_time: '',
-    lineup: '',
+    lineup: [],
     location_address: '',
     total_tables: '',
     table_types: '',
     max_party_size: '10'
   });
 
+  const [newDj, setNewDj] = useState('');
+
+  // Add DJ to lineup
+  const addDj = () => {
+    if (newDj.trim()) {
+      setEventData({
+        ...eventData,
+        lineup: [...eventData.lineup, newDj.trim()]
+      });
+      setNewDj('');
+    }
+  };
+
+  // Remove DJ from lineup
+  const removeDj = (index) => {
+    const newLineup = eventData.lineup.filter((_, i) => i !== index);
+    setEventData({...eventData, lineup: newLineup});
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const formattedData = {
       ...eventData,
-      lineup: eventData.lineup ? eventData.lineup.split(',').map(dj => dj.trim()).filter(dj => dj) : [],
       table_types: eventData.table_types ? eventData.table_types.split(',').map(type => type.trim()).filter(type => type) : [],
       total_tables: parseInt(eventData.total_tables) || 0,
       max_party_size: parseInt(eventData.max_party_size) || 10
@@ -282,17 +333,31 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
     onSubmit(formattedData, userRole);
   };
 
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-red-600 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">🎉 Crea Nuovo Evento</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-red-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-red-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -322,14 +387,18 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
                 required
               />
               
-              <input
-                type="time"
-                placeholder="Orario di inizio *"
-                value={eventData.start_time}
-                onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
-                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
-                required
-              />
+              {/* ORARIO LIBERO - input time invece di select */}
+              <div>
+                <label className="text-red-400 font-bold block mb-1">🕘 Orario di inizio *</label>
+                <input
+                  type="time"
+                  value={eventData.start_time}
+                  onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  required
+                />
+                <p className="text-gray-400 text-xs mt-1">Puoi inserire qualsiasi orario</p>
+              </div>
               
               <input
                 type="text"
@@ -353,29 +422,67 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
                 className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
               />
               
-              <input
-                type="time"
-                placeholder="Orario di fine"
-                value={eventData.end_time}
-                onChange={(e) => setEventData({...eventData, end_time: e.target.value})}
-                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-              />
+              {/* ORARIO FINE ANCHE LIBERO */}
+              <div>
+                <label className="text-blue-400 font-bold block mb-1">🕘 Orario di fine</label>
+                <input
+                  type="time"
+                  value={eventData.end_time}
+                  onChange={(e) => setEventData({...eventData, end_time: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                />
+              </div>
               
-              {/* Enhanced DJ Lineup Input */}
+              {/* DESIGN DJ MIGLIORATO */}
               <div className="col-span-full">
                 <label className="text-blue-400 font-bold block mb-2">🎵 Line-up DJ</label>
-                <textarea
-                  placeholder="Inserisci i nomi dei DJ, uno per riga o separati da virgola"
-                  value={eventData.lineup}
-                  onChange={(e) => setEventData({...eventData, lineup: e.target.value})}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
-                  rows="3"
-                />
+                
+                {/* Current DJ List */}
+                {eventData.lineup.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <h4 className="text-sm text-gray-400">DJ in lineup:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {eventData.lineup.map((dj, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 border border-blue-500/20">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-blue-400">🎧</span>
+                            <span className="text-white">{dj}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDj(index)}
+                            className="text-red-400 hover:text-red-300 text-sm transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Add New DJ */}
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Nome DJ (es. DJ Marco)"
+                    value={newDj}
+                    onChange={(e) => setNewDj(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDj())}
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={addDj}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-bold transition-colors flex items-center space-x-1"
+                  >
+                    <span>➕</span>
+                    <span className="hidden md:inline">Aggiungi</span>
+                  </button>
+                </div>
                 <div className="flex items-center space-x-2 mt-2">
-                  <span className="text-gray-400 text-xs">💡 Esempi:</span>
-                  <span className="text-blue-400 text-xs">DJ Marco, DJ Sara</span>
-                  <span className="text-gray-500 text-xs">oppure</span>
-                  <span className="text-blue-400 text-xs">un DJ per riga</span>
+                  <span className="text-gray-400 text-xs">💡 Suggerimento:</span>
+                  <span className="text-blue-400 text-xs">Aggiungi un DJ alla volta per una gestione migliore</span>
                 </div>
               </div>
               
@@ -441,17 +548,31 @@ export const CreateOrganizationModal = ({ show, onClose, onSubmit }) => {
     onSubmit(orgData);
   };
 
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-blue-600 rounded-xl max-w-md w-full shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">🏢 Crea Organizzazione</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -511,17 +632,31 @@ export const CreateCapoPromoterModal = ({ show, onClose, onSubmit }) => {
     onSubmit(userData);
   };
 
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-green-600 rounded-xl max-w-md w-full shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">🎯 Crea Capo Promoter</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-green-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-green-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -585,17 +720,31 @@ export const CreatePromoterModal = ({ show, onClose, onSubmit }) => {
     onSubmit(userData);
   };
 
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!show) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-blue-600 rounded-xl max-w-md w-full shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">🎪 Crea Promoter</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -644,17 +793,31 @@ export const CreatePromoterModal = ({ show, onClose, onSubmit }) => {
 
 // Organization Details Modal
 export const OrganizationDetailsModal = ({ show, onClose, organization, onViewProfile }) => {
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!show || !organization) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-blue-600 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">🏢 {organization.name}</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -736,7 +899,6 @@ export const OrganizationDetailsModal = ({ show, onClose, organization, onViewPr
   );
 };
 
-// Edit Event Modal for Capo Promoter
 // Edit Profile Modal for own profile editing
 export const EditProfileModal = ({ show, onClose, currentUser, onSubmit }) => {
   const [profileData, setProfileData] = useState({
@@ -763,17 +925,31 @@ export const EditProfileModal = ({ show, onClose, currentUser, onSubmit }) => {
     onSubmit(profileData);
   };
 
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!show || !currentUser) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
       <div className="bg-gray-900 border border-blue-600 rounded-xl max-w-md w-full shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">✏️ Modifica Profilo</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-blue-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -857,51 +1033,96 @@ export const EditProfileModal = ({ show, onClose, currentUser, onSubmit }) => {
   );
 };
 
+// Edit Event Modal - MIGLIORATO con orario libero
 export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
   const [eventData, setEventData] = useState({
     name: '',
-    lineup: '',
+    lineup: [],
     start_time: '',
     end_time: '',
-    guests: ''
+    guests: []
   });
+
+  const [newDj, setNewDj] = useState('');
+  const [newGuest, setNewGuest] = useState('');
 
   // Initialize form data when event changes
   React.useEffect(() => {
     if (event) {
       setEventData({
         name: event.name || '',
-        lineup: Array.isArray(event.lineup) ? event.lineup.join(', ') : (event.lineup || ''),
+        lineup: Array.isArray(event.lineup) ? event.lineup : [],
         start_time: event.start_time || '',
         end_time: event.end_time || '',
-        guests: Array.isArray(event.guests) ? event.guests.join(', ') : (event.guests || '')
+        guests: Array.isArray(event.guests) ? event.guests : []
       });
     }
   }, [event]);
 
+  // Add DJ to lineup
+  const addDj = () => {
+    if (newDj.trim()) {
+      setEventData({
+        ...eventData,
+        lineup: [...eventData.lineup, newDj.trim()]
+      });
+      setNewDj('');
+    }
+  };
+
+  // Remove DJ from lineup
+  const removeDj = (index) => {
+    const newLineup = eventData.lineup.filter((_, i) => i !== index);
+    setEventData({...eventData, lineup: newLineup});
+  };
+
+  // Add Guest
+  const addGuest = () => {
+    if (newGuest.trim()) {
+      setEventData({
+        ...eventData,
+        guests: [...eventData.guests, newGuest.trim()]
+      });
+      setNewGuest('');
+    }
+  };
+
+  // Remove Guest
+  const removeGuest = (index) => {
+    const newGuests = eventData.guests.filter((_, i) => i !== index);
+    setEventData({...eventData, guests: newGuests});
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    const formattedData = {
-      name: eventData.name,
-      lineup: eventData.lineup ? eventData.lineup.split(',').map(dj => dj.trim()) : [],
-      start_time: eventData.start_time,
-      end_time: eventData.end_time,
-      guests: eventData.guests ? eventData.guests.split(',').map(guest => guest.trim()) : []
-    };
-    onSubmit(event.id, formattedData);
+    onSubmit(event.id, eventData);
+  };
+
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
   };
 
   if (!show || !event) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 border border-orange-600 rounded-xl max-w-2xl w-full shadow-2xl">
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-gray-900 border border-orange-600 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-2xl font-bold">✏️ Modifica Evento</h2>
             <button 
-              onClick={onClose}
-              className="text-gray-400 hover:text-orange-400 text-2xl font-bold transition-colors"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-orange-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
             >
               ✕
             </button>
@@ -936,70 +1157,126 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
                 />
               </div>
 
+              {/* DESIGN DJ MIGLIORATO */}
               <div>
                 <label className="text-orange-400 font-bold block mb-2">🎵 Line-up DJ</label>
-                <input
-                  type="text"
-                  placeholder="DJ set (separati da virgola)"
-                  value={eventData.lineup}
-                  onChange={(e) => setEventData({...eventData, lineup: e.target.value})}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                />
-                <p className="text-gray-400 text-xs mt-1">Esempio: DJ Marco, DJ Sara, DJ Alex</p>
+                
+                {/* Current DJ List */}
+                {eventData.lineup.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <h4 className="text-sm text-gray-400">DJ in lineup:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {eventData.lineup.map((dj, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 border border-orange-500/20">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-orange-400">🎧</span>
+                            <span className="text-white">{dj}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDj(index)}
+                            className="text-red-400 hover:text-red-300 text-sm transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Add New DJ */}
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Nome DJ (es. DJ Marco)"
+                    value={newDj}
+                    onChange={(e) => setNewDj(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDj())}
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={addDj}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg font-bold transition-colors flex items-center space-x-1"
+                  >
+                    <span>➕</span>
+                    <span className="hidden md:inline">Aggiungi</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-orange-400 font-bold block mb-2">🕘 Orario di Inizio</label>
-                  <select
+                  <input
+                    type="time"
                     value={eventData.start_time}
                     onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
                     required
-                  >
-                    <option value="">Seleziona orario</option>
-                    <option value="18:00">18:00</option>
-                    <option value="19:00">19:00</option>
-                    <option value="20:00">20:00</option>
-                    <option value="21:00">21:00</option>
-                    <option value="22:00">22:00</option>
-                    <option value="22:30">22:30</option>
-                    <option value="23:00">23:00</option>
-                    <option value="23:30">23:30</option>
-                    <option value="00:00">00:00</option>
-                    <option value="01:00">01:00</option>
-                  </select>
+                  />
+                  <p className="text-gray-400 text-xs mt-1">Puoi inserire qualsiasi orario</p>
                 </div>
 
                 <div>
                   <label className="text-orange-400 font-bold block mb-2">🕘 Orario di Fine</label>
-                  <select
+                  <input
+                    type="time"
                     value={eventData.end_time}
                     onChange={(e) => setEventData({...eventData, end_time: e.target.value})}
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                  >
-                    <option value="">Seleziona orario fine</option>
-                    <option value="01:00">01:00</option>
-                    <option value="02:00">02:00</option>
-                    <option value="03:00">03:00</option>
-                    <option value="04:00">04:00</option>
-                    <option value="05:00">05:00</option>
-                    <option value="06:00">06:00</option>
-                    <option value="07:00">07:00</option>
-                  </select>
+                  />
                 </div>
               </div>
 
+              {/* DESIGN GUEST MIGLIORATO */}
               <div>
                 <label className="text-orange-400 font-bold block mb-2">⭐ Guest Speciali</label>
-                <input
-                  type="text"
-                  placeholder="Guest speciali (separati da virgola)"
-                  value={eventData.guests}
-                  onChange={(e) => setEventData({...eventData, guests: e.target.value})}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
-                />
-                <p className="text-gray-400 text-xs mt-1">Esempio: Artista Speciale, Celebrity Guest</p>
+                
+                {/* Current Guest List */}
+                {eventData.guests.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <h4 className="text-sm text-gray-400">Guest speciali:</h4>
+                    <div className="grid grid-cols-1 gap-2">
+                      {eventData.guests.map((guest, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 border border-orange-500/20">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-orange-400">⭐</span>
+                            <span className="text-white">{guest}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeGuest(index)}
+                            className="text-red-400 hover:text-red-300 text-sm transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Add New Guest */}
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Nome guest speciale"
+                    value={newGuest}
+                    onChange={(e) => setNewGuest(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGuest())}
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={addGuest}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-3 rounded-lg font-bold transition-colors flex items-center space-x-1"
+                  >
+                    <span>➕</span>
+                    <span className="hidden md:inline">Aggiungi</span>
+                  </button>
+                </div>
               </div>
             </div>
             
