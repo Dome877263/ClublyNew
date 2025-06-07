@@ -1180,7 +1180,7 @@ async def get_organization_promoters(organization_name: str, current_user = Depe
             "biografia": promoter.get("biografia", "")
         })
     
-    return promoters
+    return filtered_promoters
 
 if __name__ == "__main__":
     import uvicorn
