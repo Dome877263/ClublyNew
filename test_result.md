@@ -192,6 +192,33 @@ backend:
       - working: true
         agent: "main"
         comment: "Aggiornati tutti i modelli utente e endpoint per supportare il campo biografia. Aggiornati utenti di esempio con biografie."
+        
+  - task: "Organization Promoters API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "Inizialmente l'API /api/organizations/{organization_name}/promoters restituiva un errore 500 a causa di un problema con la proiezione MongoDB: 'Cannot do inclusion on field id in exclusion projection'."
+      - working: true
+        agent: "testing"
+        comment: "Problema risolto modificando la query MongoDB per utilizzare un approccio di filtraggio manuale dei campi. L'API ora restituisce correttamente tutti i promoter e capo_promoter di una specifica organizzazione con i campi richiesti: id, nome, cognome, username, profile_image, ruolo, biografia."
+        
+  - task: "Booking with Promoter Selection API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API POST /api/bookings funziona correttamente sia con un promoter selezionato specifico (selected_promoter_id) che con assegnazione automatica (selected_promoter_id = null). La risposta include correttamente il nome del promoter assegnato."
 
 frontend:
   - task: "User Profile Viewing Modal"
