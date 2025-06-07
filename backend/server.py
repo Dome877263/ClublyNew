@@ -79,6 +79,13 @@ class TemporaryCredentials(BaseModel):
     ruolo: str  # "promoter" or "capo_promoter"
     organization: Optional[str] = None
 
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+class OrganizationUpdate(BaseModel):
+    capo_promoter_id: Optional[str] = None
+
 class UserSearch(BaseModel):
     search_term: Optional[str] = ""
     role_filter: Optional[str] = None
