@@ -104,6 +104,7 @@ class Event(BaseModel):
     tables_available: int = 0
     max_party_size: int = 10
     image: Optional[str] = None
+    event_poster: Optional[str] = None
 
 class Booking(BaseModel):
     event_id: str
