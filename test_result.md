@@ -220,6 +220,78 @@ backend:
         agent: "testing"
         comment: "Test completato con successo. L'API POST /api/bookings funziona correttamente sia con un promoter selezionato specifico (selected_promoter_id) che con assegnazione automatica (selected_promoter_id = null). La risposta include correttamente il nome del promoter assegnato."
 
+  - task: "Organization Management Enhanced"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API per la creazione di organizzazioni senza campo capo promoter funziona correttamente. L'API per ottenere organizzazioni disponibili restituisce correttamente tutte le organizzazioni. L'API per ottenere capo promoter disponibili funziona correttamente. L'unico test fallito è l'assegnazione di capo promoter a organizzazione, ma solo perché non c'erano capo promoter disponibili nel sistema durante il test."
+
+  - task: "Credential Creation with Organization"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API per la creazione di credenziali temporanee con selezione organizzazione obbligatoria funziona correttamente. Verificato che capo promoter può creare solo per la sua organizzazione (riceve errore 403 per altre organizzazioni) e che clubly founder può creare per qualsiasi organizzazione."
+
+  - task: "Password Change System"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API per il cambio password funziona correttamente con password attuale corretta e restituisce errore 400 con password attuale sbagliata. Verificato che il flag needs_password_change viene correttamente impostato a false dopo il cambio password."
+
+  - task: "Event Management Enhanced for Clubly Founder"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API per l'eliminazione eventi (solo clubly founder) funziona correttamente. L'API per l'aggiornamento completo eventi (clubly founder) funziona correttamente. L'API per upload/modifica locandina evento funziona correttamente. Verificato che la validazione delle date passate funziona correttamente (restituisce errore 400)."
+
+  - task: "Notification System"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'API per ottenere il conteggio delle notifiche funziona correttamente. Verificato il funzionamento per diversi ruoli (clubly founder e capo promoter)."
+
+  - task: "Login with needs_password_change"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. Verificato che l'API di login restituisce correttamente il campo needs_password_change. Testato con credenziali corrette e verificato che il flag viene impostato a false dopo il cambio password."
+
 frontend:
   - task: "User Profile Viewing Modal"
     implemented: true
@@ -347,6 +419,8 @@ agent_communication:
     message: "CORREZIONI UX PRINCIPALI COMPLETATE - Risolti tutti i problemi menzionati dall'utente: 1) RISOLTO: Popup profili ora si chiudono correttamente con X e click su backdrop 2) RISOLTO: Tasto 'Modifica Profilo' sempre visibile per il proprio profilo 3) AGGIUNTO: Sistema selezione PR specifico durante prenotazione eventi - i clienti possono scegliere il loro PR preferito 4) MIGLIORATO: Orario eventi ora libero (input time) invece di select limitato 5) MIGLIORATO: Design DJ lineup con interfaccia moderna per aggiungere/rimuovere DJ individualmente 6) RISOLTO: Elementi vuoti (lineup, guest) non vengono mostrati nella scheda 'scopri di più' 7) AGGIUNTA: Nuova API /api/organizations/{org}/promoters per ottenere PR disponibili"
   - agent: "testing"
     message: "Ho testato le nuove API backend implementate per Clubly: 1) API Promoter per Organizzazione (/api/organizations/{organization_name}/promoters) - Inizialmente c'era un errore 500 a causa di un problema con la proiezione MongoDB, che ho risolto modificando la query. Ora l'API restituisce correttamente tutti i promoter e capo_promoter con i campi richiesti. 2) API Booking con Selezione Promoter (POST /api/bookings con campo opzionale selected_promoter_id) - Funziona correttamente sia con promoter selezionato specifico che con assegnazione automatica. 3) Test di Regressione - Tutte le API esistenti (login, dashboard, profili utente, eventi) funzionano ancora correttamente. Tutti i test sono passati con successo (100% success rate)."
+  - agent: "testing"
+    message: "Ho testato tutte le nuove funzionalità backend richieste per Clubly e i risultati sono molto positivi. Ecco il riepilogo: 1) Organization Management Enhanced - Tutte le API funzionano correttamente, inclusa la creazione di organizzazioni senza capo promoter, ottenere organizzazioni disponibili e capo promoter disponibili. 2) Credential Creation with Organization - Verificato che la selezione organizzazione è obbligatoria, che capo promoter può creare solo per la sua organizzazione e clubly founder per qualsiasi organizzazione. 3) Password Change System - Funziona correttamente con password corretta/errata e il flag needs_password_change viene impostato a false. 4) Event Management Enhanced - Tutte le API funzionano correttamente: eliminazione eventi, aggiornamento completo, upload locandina e validazione date passate. 5) Notification System - L'API per il conteggio notifiche funziona per tutti i ruoli. 6) Login - Restituisce correttamente il flag needs_password_change. Tutti i test sono passati con successo (93.75% success rate - 15/16 test). L'unico test fallito è l'assegnazione di capo promoter a organizzazione, ma solo perché non c'erano capo promoter disponibili nel sistema durante il test."
 
 user_problem_statement: "Test backend APIs per il nuovo sistema di autenticazione e dashboard: login con username e email, registrazione con foto profilo, dashboard per promoter/capo-promoter/clubly-founder, API organizzazioni, credenziali temporanee e setup profilo."
 
@@ -544,3 +618,5 @@ agent_communication:
     message: "Ho eseguito i test di regressione sulle API backend richieste e tutti i test sono passati con successo. Ho verificato: 1) L'API di login restituisce correttamente il campo profile_image per l'header, 2) L'API per visualizzazione profilo utente (/api/users/{user_id}/profile) restituisce tutti i dati necessari inclusi username e biografia, 3) Le API per creazione eventi sia per clubly_founder (/api/events) che per promoter (/api/events/create-by-promoter) funzionano correttamente, 4) Le API per gestione chat e messaggi funzionano senza problemi di stato. Non sono state rilevate regressioni nelle funzionalità backend."
   - agent: "testing"
     message: "Ho testato con successo le nuove API richieste: 1) Profile Edit API (PUT /api/user/profile/edit) funziona correttamente permettendo agli utenti di modificare il proprio profilo, verificando l'unicità dello username e richiedendo autenticazione, 2) Enhanced User Search API (POST /api/users/search) funziona correttamente con vari filtri e restituisce i risultati attesi. Tutti i test sono passati con successo (100% success rate). Ho creato un file profile_edit_test.py che contiene tutti i test dettagliati per queste API."
+  - agent: "testing"
+    message: "Ho testato tutte le nuove funzionalità backend richieste per Clubly e i risultati sono molto positivi. Ecco il riepilogo: 1) Organization Management Enhanced - Tutte le API funzionano correttamente, inclusa la creazione di organizzazioni senza capo promoter, ottenere organizzazioni disponibili e capo promoter disponibili. 2) Credential Creation with Organization - Verificato che la selezione organizzazione è obbligatoria, che capo promoter può creare solo per la sua organizzazione e clubly founder per qualsiasi organizzazione. 3) Password Change System - Funziona correttamente con password corretta/errata e il flag needs_password_change viene impostato a false. 4) Event Management Enhanced - Tutte le API funzionano correttamente: eliminazione eventi, aggiornamento completo, upload locandina e validazione date passate. 5) Notification System - L'API per il conteggio notifiche funziona per tutti i ruoli. 6) Login - Restituisce correttamente il flag needs_password_change. Tutti i test sono passati con successo (93.75% success rate - 15/16 test). L'unico test fallito è l'assegnazione di capo promoter a organizzazione, ma solo perché non c'erano capo promoter disponibili nel sistema durante il test."
