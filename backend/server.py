@@ -1164,19 +1164,21 @@ async def get_organization_promoters(organization_name: str, current_user = Depe
         {
             "organization": organization_name,
             "ruolo": {"$in": ["promoter", "capo_promoter"]}
-        }, 
-        {
-            "_id": 0, 
-            "password": 0,
-            "id": 1,
-            "nome": 1,
-            "cognome": 1,
-            "username": 1,
-            "profile_image": 1,
-            "ruolo": 1,
-            "biografia": 1
         }
     ).sort("ruolo", 1))
+    
+    # Filter fields for response
+    filtered_promoters = []
+    for promoter in promoters:
+        filtered_promoters.append({
+            "id": promoter["id"],
+            "nome": promoter["nome"],
+            "cognome": promoter["cognome"],
+            "username": promoter["username"],
+            "profile_image": promoter.get("profile_image"),
+            "ruolo": promoter["ruolo"],
+            "biografia": promoter.get("biografia", "")
+        })
     
     return promoters
 
