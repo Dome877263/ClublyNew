@@ -1520,12 +1520,15 @@ function App() {
 
   const BookingModal = () => (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 border border-red-600 rounded-lg max-w-md w-full">
+      <div className="bg-gray-900 border border-red-600 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-xl font-bold">Prenota per {selectedEvent?.name}</h2>
             <button 
-              onClick={() => setShowBooking(false)}
+              onClick={() => {
+                setShowBooking(false);
+                setSelectedPromoterId(null);
+              }}
               className="text-gray-400 hover:text-red-400 text-xl"
             >
               ✕
@@ -1533,10 +1536,85 @@ function App() {
           </div>
           
           <div className="space-y-4">
+            {/* Event Info */}
+            <div className="bg-gray-800 rounded-lg p-4">
+              <h3 className="text-red-400 font-bold mb-2">📅 Dettagli Evento</h3>
+              <p className="text-gray-300 text-sm"><span className="text-gray-400">Data:</span> {selectedEvent?.date}</p>
+              <p className="text-gray-300 text-sm"><span className="text-gray-400">Orario:</span> {selectedEvent?.start_time}</p>
+              <p className="text-gray-300 text-sm"><span className="text-gray-400">Luogo:</span> {selectedEvent?.location}</p>
+              <p className="text-gray-300 text-sm"><span className="text-gray-400">Organizzazione:</span> {selectedEvent?.organization}</p>
+            </div>
+
+            {/* PR Selection */}
+            {availablePromoters.length > 0 && (
+              <div>
+                <label className="text-white font-bold block mb-2">🎯 Scegli il tuo PR</label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  <label className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
+                    <input 
+                      type="radio" 
+                      name="promoter" 
+                      value=""
+                      checked={selectedPromoterId === null}
+                      onChange={() => setSelectedPromoterId(null)}
+                      className="text-red-600" 
+                    />
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold">🎲</span>
+                      </div>
+                      <div>
+                        <span className="text-white font-semibold">Assegnazione Automatica</span>
+                        <p className="text-gray-400 text-xs">Il sistema sceglierà il PR più disponibile</p>
+                      </div>
+                    </div>
+                  </label>
+                  
+                  {availablePromoters.map(promoter => (
+                    <label key={promoter.id} className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
+                      <input 
+                        type="radio" 
+                        name="promoter" 
+                        value={promoter.id}
+                        checked={selectedPromoterId === promoter.id}
+                        onChange={() => setSelectedPromoterId(promoter.id)}
+                        className="text-red-600" 
+                      />
+                      <div className="flex items-center space-x-3">
+                        {promoter.profile_image ? (
+                          <img 
+                            src={promoter.profile_image} 
+                            alt={promoter.nome}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold">{promoter.nome?.charAt(0)}</span>
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-white font-semibold">@{promoter.username}</span>
+                            <span className="text-sm">
+                              {promoter.ruolo === 'capo_promoter' ? '🎯' : '🎪'}
+                            </span>
+                          </div>
+                          <p className="text-gray-300 text-sm">{promoter.nome} {promoter.cognome}</p>
+                          {promoter.biografia && (
+                            <p className="text-gray-400 text-xs truncate">{promoter.biografia}</p>
+                          )}
+                        </div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             <div>
-              <label className="text-white font-bold block mb-2">Tipo di Prenotazione</label>
+              <label className="text-white font-bold block mb-2">🎫 Tipo di Prenotazione</label>
               <div className="space-y-2">
-                <label className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
                   <input 
                     type="radio" 
                     name="bookingType" 
@@ -1544,9 +1622,12 @@ function App() {
                     onChange={(e) => setBookingType(e.target.value)}
                     className="text-red-600" 
                   />
-                  <span className="text-gray-300">Lista / Prevendita</span>
+                  <div>
+                    <span className="text-gray-300 font-semibold">Lista / Prevendita</span>
+                    <p className="text-gray-400 text-xs">Ingresso garantito alla serata</p>
+                  </div>
                 </label>
-                <label className="flex items-center space-x-2">
+                <label className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
                   <input 
                     type="radio" 
                     name="bookingType" 
@@ -1554,17 +1635,20 @@ function App() {
                     onChange={(e) => setBookingType(e.target.value)}
                     className="text-red-600" 
                   />
-                  <span className="text-gray-300">Tavolo</span>
+                  <div>
+                    <span className="text-gray-300 font-semibold">Tavolo</span>
+                    <p className="text-gray-400 text-xs">Tavolo riservato per il tuo gruppo</p>
+                  </div>
                 </label>
               </div>
             </div>
             
             <div>
-              <label className="text-white font-bold block mb-2">Numero di Persone</label>
+              <label className="text-white font-bold block mb-2">👥 Numero di Persone</label>
               <select 
                 value={partySize}
                 onChange={(e) => setPartySize(parseInt(e.target.value))}
-                className="w-full bg-gray-800 border border-gray-700 rounded px-3 py-2 text-white focus:border-red-600 outline-none"
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 text-white focus:border-red-600 outline-none transition-all"
               >
                 {[...Array(selectedEvent?.max_party_size || 10)].map((_, i) => (
                   <option key={i+1} value={i+1}>
@@ -1577,14 +1661,19 @@ function App() {
             <button 
               onClick={handleBookingSubmit}
               disabled={!bookingType}
-              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white py-3 rounded font-bold transition-colors"
+              className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 text-white py-3 rounded-lg font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg disabled:transform-none"
             >
-              Conferma Prenotazione
+              🎉 Conferma Prenotazione
             </button>
             
-            <p className="text-gray-400 text-sm text-center">
-              Un promoter ti contatterà presto per finalizzare la prenotazione
-            </p>
+            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-3">
+              <p className="text-blue-300 text-sm text-center">
+                {selectedPromoterId 
+                  ? `Il PR ${availablePromoters.find(p => p.id === selectedPromoterId)?.nome} ti contatterà presto!`
+                  : 'Un promoter ti contatterà presto per finalizzare la prenotazione'
+                }
+              </p>
+            </div>
           </div>
         </div>
       </div>
