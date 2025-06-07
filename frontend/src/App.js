@@ -253,15 +253,17 @@ function App() {
         body: JSON.stringify({
           event_id: selectedEvent.id,
           booking_type: bookingType,
-          party_size: partySize
+          party_size: partySize,
+          selected_promoter_id: selectedPromoterId
         })
       });
       
       if (response.ok) {
         const result = await response.json();
-        alert('Prenotazione inviata! Chat con promoter avviata.');
+        alert(`Prenotazione inviata! Chat con ${result.promoter_name} avviata.`);
         setShowBooking(false);
         setSelectedEvent(null);
+        setSelectedPromoterId(null);
         fetchEvents(); // Refresh to update availability
         fetchChats(); // Fetch new chat
         setShowChat(true); // Open chat interface
