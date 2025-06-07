@@ -103,6 +103,7 @@ class Booking(BaseModel):
     event_id: str
     booking_type: str  # "lista" or "tavolo"
     party_size: int
+    selected_promoter_id: Optional[str] = None  # Allow client to select specific promoter
 
 class ChatMessage(BaseModel):
     chat_id: str
