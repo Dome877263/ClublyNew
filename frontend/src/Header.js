@@ -1,7 +1,7 @@
 import React from 'react';
 
-// Header Component with User Profile
-const Header = ({ currentUser, onOpenOwnProfile, onLogout, onOpenChat, onBackToMain }) => {
+// Header Component with User Profile and Notifications
+const Header = ({ currentUser, currentView, setCurrentView, onLogout, onOpenProfile, notificationsCount = 0 }) => {
   if (!currentUser) return null;
 
   const getRoleIcon = (role) => {
@@ -24,33 +24,78 @@ const Header = ({ currentUser, onOpenOwnProfile, onLogout, onOpenChat, onBackToM
     }
   };
 
+  // Navigate based on user role
+  const navigateToDashboard = () => {
+    switch(currentUser.ruolo) {
+      case 'clubly_founder':
+        setCurrentView('clubly-founder');
+        break;
+      case 'capo_promoter':
+        setCurrentView('capo-promoter');
+        break;
+      case 'promoter':
+        setCurrentView('promoter');
+        break;
+      default:
+        setCurrentView('main');
+    }
+  };
+
   return (
     <header className="bg-gray-900 border-b border-red-600 px-4 py-3 shadow-lg">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Left side - Logo/Brand */}
         <div className="flex items-center space-x-4">
           <button 
-            onClick={onBackToMain}
+            onClick={() => setCurrentView('main')}
             className="text-red-500 hover:text-red-400 font-bold text-xl transition-colors"
           >
             🎪 CLUBLY
           </button>
+          
+          {/* Navigation */}
+          {currentUser.ruolo !== 'cliente' && (
+            <div className="hidden md:flex items-center space-x-2">
+              <button
+                onClick={() => setCurrentView('main')}
+                className={`px-3 py-1 rounded transition-colors ${
+                  currentView === 'main' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🏠 Home
+              </button>
+              <button
+                onClick={navigateToDashboard}
+                className={`px-3 py-1 rounded transition-colors ${
+                  currentView !== 'main' ? 'bg-red-600 text-white' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                📊 Dashboard
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right side - User Profile */}
         <div className="flex items-center space-x-4">
-          {/* Chat Button */}
+          {/* Chat Button with Notifications Badge */}
           <button
-            onClick={onOpenChat}
+            onClick={() => setCurrentView('main')} // This will be handled by chat modal in main app
             className="relative bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center space-x-2"
           >
             <span>💬</span>
             <span className="hidden md:inline">Chat</span>
+            {/* Notifications Badge */}
+            {notificationsCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-gray-900 animate-pulse">
+                {notificationsCount > 99 ? '99+' : notificationsCount}
+              </span>
+            )}
           </button>
 
           {/* User Profile Section - Clickable */}
           <div 
-            onClick={onOpenOwnProfile}
+            onClick={onOpenProfile}
             className="flex items-center space-x-3 bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-2 cursor-pointer transition-colors border border-gray-700 hover:border-red-500"
           >
             {/* Profile Image */}
@@ -72,12 +117,12 @@ const Header = ({ currentUser, onOpenOwnProfile, onLogout, onOpenChat, onBackToM
             <div className="hidden md:block">
               <div className="flex items-center space-x-2">
                 <span className="text-white font-bold">
-                  @{currentUser.username}
+                  {currentUser.nome} {currentUser.cognome}
                 </span>
                 <span className="text-lg">{getRoleIcon(currentUser.ruolo)}</span>
               </div>
               <p className="text-gray-400 text-sm">
-                {getRoleName(currentUser.ruolo)}
+                @{currentUser.username} • {getRoleName(currentUser.ruolo)}
               </p>
             </div>
 
