@@ -50,8 +50,6 @@ function App() {
   const [selectedOrganization, setSelectedOrganization] = useState(null);
   const [isLoadingChatMessages, setIsLoadingChatMessages] = useState(false);
   const [showEditOwnProfile, setShowEditOwnProfile] = useState(false);
-  const [availablePromoters, setAvailablePromoters] = useState([]);
-  const [selectedPromoterId, setSelectedPromoterId] = useState(null);
   
   // NEW STATES FOR REQUIREMENTS
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -59,6 +57,7 @@ function App() {
   const [organizations, setOrganizations] = useState([]);
   const [availableCapoPromoters, setAvailableCapoPromoters] = useState([]);
   const [notificationsCount, setNotificationsCount] = useState(0);
+  const [authError, setAuthError] = useState('');
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
@@ -70,6 +69,7 @@ function App() {
   useEffect(() => {
     if (currentUser) {
       fetchChats();
+      fetchNotifications(); // Fetch notifications when user logs in
     }
   }, [currentUser]);
 
@@ -78,6 +78,52 @@ function App() {
       fetchDashboardData();
     }
   }, [currentView, currentUser]);
+
+  // Fetch notifications count
+  const fetchNotifications = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch(`${backendUrl}/api/user/notifications`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationsCount(data.notification_count);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
+  // Fetch organizations for dropdowns
+  const fetchOrganizations = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/organizations`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setOrganizations(data);
+      }
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+    }
+  };
+
+  // Fetch available capo promoters
+  const fetchAvailableCapoPromoters = async () => {
+    try {
+      const response = await fetch(`${backendUrl}/api/organizations/available-capo-promoters`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableCapoPromoters(data);
+      }
+    } catch (error) {
+      console.error('Error fetching available capo promoters:', error);
+    }
+  };
 
   const fetchDashboardData = async () => {
     if (!currentUser || currentView === 'main') return;
@@ -113,12 +159,6 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    if (currentUser && currentView !== 'main') {
-      fetchDashboardData();
-    }
-  }, [currentView, currentUser]);
-
   const checkAuthStatus = async () => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -133,6 +173,10 @@ function App() {
           // Check if user needs setup
           if (user.needs_setup) {
             setShowUserSetup(true);
+          }
+          // Check if user needs password change
+          else if (user.needs_password_change) {
+            setShowChangePassword(true);
           }
         }
       } catch (error) {
@@ -153,6 +197,7 @@ function App() {
 
   const handleLogin = async (loginData, password) => {
     try {
+      setAuthError(''); // Clear previous errors
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,19 +213,26 @@ function App() {
         // Check if user needs setup
         if (data.user.needs_setup) {
           setShowUserSetup(true);
-        } else if (selectedEvent) {
+        }
+        // Check if user needs password change
+        else if (data.user.needs_password_change) {
+          setShowChangePassword(true);
+        }
+        else if (selectedEvent) {
           setShowBooking(true);
         }
       } else {
-        alert('Credenziali non valide');
+        const errorData = await response.json();
+        setAuthError(errorData.detail || 'Email o password non corrette');
       }
     } catch (error) {
-      alert('Errore durante il login');
+      setAuthError('Errore durante il login');
     }
   };
 
   const handleRegister = async (userData) => {
     try {
+      setAuthError(''); // Clear previous errors
       const response = await fetch(`${backendUrl}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -197,10 +249,37 @@ function App() {
         }
       } else {
         const error = await response.json();
-        alert(error.message || 'Errore durante la registrazione');
+        setAuthError(error.detail || 'Errore durante la registrazione');
       }
     } catch (error) {
-      alert('Errore durante la registrazione');
+      setAuthError('Errore durante la registrazione');
+    }
+  };
+
+  // Handle password change
+  const handlePasswordChange = async (passwordData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/user/change-password`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(passwordData)
+      });
+      
+      if (response.ok) {
+        setShowChangePassword(false);
+        alert('Password cambiata con successo!');
+        // Update current user to reflect password change
+        const updatedUser = {...currentUser, needs_password_change: false};
+        setCurrentUser(updatedUser);
+      } else {
+        const error = await response.json();
+        alert(error.detail || 'Errore durante il cambio password');
+      }
+    } catch (error) {
+      alert('Errore durante il cambio password');
     }
   };
 
@@ -219,7 +298,13 @@ function App() {
         const data = await response.json();
         setCurrentUser(data.user);
         setShowUserSetup(false);
-        alert('Profilo completato con successo!');
+        
+        // Check if user still needs password change after setup
+        if (data.user.needs_password_change) {
+          setShowChangePassword(true);
+        } else {
+          alert('Profilo completato con successo!');
+        }
       } else {
         const error = await response.json();
         alert(error.detail || 'Errore durante la configurazione del profilo');
@@ -234,23 +319,12 @@ function App() {
     if (!currentUser) {
       setShowAuth(true);
     } else {
-      // Fetch available promoters for this event's organization
-      try {
-        const response = await fetch(`${backendUrl}/api/organizations/${event.organization}/promoters`, {
-          headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-        });
-        if (response.ok) {
-          const promoters = await response.json();
-          setAvailablePromoters(promoters);
-        }
-      } catch (error) {
-        console.error('Error fetching promoters:', error);
-        setAvailablePromoters([]);
-      }
+      // AUTO ASSIGNMENT - no manual promoter selection
       setShowBooking(true);
     }
   };
 
+  // Updated booking submission - NO PROMOTER SELECTION
   const handleBookingSubmit = async () => {
     try {
       const response = await fetch(`${backendUrl}/api/bookings`, {
@@ -262,19 +336,19 @@ function App() {
         body: JSON.stringify({
           event_id: selectedEvent.id,
           booking_type: bookingType,
-          party_size: partySize,
-          selected_promoter_id: selectedPromoterId
+          party_size: partySize
+          // No selected_promoter_id - auto assignment
         })
       });
       
       if (response.ok) {
         const result = await response.json();
-        alert(`Prenotazione inviata! Chat con ${result.promoter_name} avviata.`);
+        alert(`Prenotazione inviata! Chat con ${result.promoter_name} avviata automaticamente.`);
         setShowBooking(false);
         setSelectedEvent(null);
-        setSelectedPromoterId(null);
         fetchEvents(); // Refresh to update availability
         fetchChats(); // Fetch new chat
+        fetchNotifications(); // Update notifications
         setShowChat(true); // Open chat interface
       }
     } catch (error) {
@@ -332,6 +406,7 @@ function App() {
       if (response.ok) {
         setNewMessage('');
         fetchChatMessages(selectedChat.id); // Refresh messages
+        fetchNotifications(); // Update notifications
       } else {
         console.error('Failed to send message');
         alert('Errore nell\'invio del messaggio');
@@ -387,6 +462,7 @@ function App() {
     setChats([]);
     setChatMessages([]);
     setSelectedChat(null);
+    setNotificationsCount(0);
   };
 
   const openEditEvent = (event) => {
@@ -517,9 +593,10 @@ function App() {
       
       if (response.ok) {
         const result = await response.json();
-        alert('Organizzazione creata con successo!');
+        alert('Organizzazione creata con successo! Potrai assegnare un capo promoter successivamente.');
         setShowCreateOrganization(false);
         fetchDashboardData(); // Refresh dashboard data
+        fetchOrganizations(); // Refresh organizations list
       } else {
         const error = await response.json();
         alert(`Errore: ${error.detail}`);
@@ -530,6 +607,7 @@ function App() {
     }
   };
 
+  // Enhanced capo promoter creation with organization dropdown
   const createCapoPromoter = async (userData) => {
     try {
       const response = await fetch(`${backendUrl}/api/users/temporary-credentials`, {
@@ -546,7 +624,7 @@ function App() {
       
       if (response.ok) {
         const result = await response.json();
-        alert(`Capo Promoter creato con successo!\nEmail: ${result.email}\nPassword temporanea: ${result.temporary_password}`);
+        alert(`Capo Promoter creato con successo!\nEmail: ${result.email}\nPassword temporanea: ${result.temporary_password}\nOrganizzazione: ${result.organization || 'Da assegnare'}`);
         setShowCreateCapoPromoter(false);
         fetchDashboardData(); // Refresh dashboard data
       } else {
@@ -585,6 +663,33 @@ function App() {
     } catch (error) {
       console.error('Error creating promoter:', error);
       alert('Errore durante la creazione del promoter');
+    }
+  };
+
+  // Organization editing function
+  const editOrganization = async (orgId, orgData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/organizations/${orgId}/assign-capo-promoter`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(orgData)
+      });
+      
+      if (response.ok) {
+        alert('Organizzazione aggiornata con successo!');
+        setShowEditOrganization(false);
+        setSelectedOrganization(null);
+        fetchDashboardData(); // Refresh dashboard data
+      } else {
+        const error = await response.json();
+        alert(`Errore: ${error.detail}`);
+      }
+    } catch (error) {
+      console.error('Error editing organization:', error);
+      alert('Errore durante la modifica dell\'organizzazione');
     }
   };
 
@@ -631,6 +736,13 @@ function App() {
     } catch (error) {
       console.error('Error fetching organization details:', error);
     }
+  };
+
+  // Enhanced organization details with edit functionality
+  const openEditOrganization = async (org) => {
+    setSelectedOrganization(org);
+    await fetchAvailableCapoPromoters(); // Fetch available capo promoters
+    setShowEditOrganization(true);
   };
 
   // Enhanced chat opening with proper state management
@@ -881,7 +993,7 @@ function App() {
               </div>
               <div>
                 <h4 className="text-white font-semibold">Modifica Eventi</h4>
-                <p className="text-gray-400 text-sm">Puoi modificare: Nome evento, Line-up DJ e Orario di inizio</p>
+                <p className="text-gray-400 text-sm">Puoi modificare: Nome evento, Line-up DJ, Orario e Locandina</p>
               </div>
             </div>
             <div className="flex items-center space-x-3 bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
@@ -951,18 +1063,29 @@ function App() {
             <h3 className="text-xl font-bold text-white mb-4">🏢 Organizzazioni</h3>
             <div className="space-y-3 max-h-64 overflow-y-auto">
               {dashboardData.organizations?.map(org => (
-                <div 
-                  key={org.id} 
-                  onClick={() => viewOrganizationDetails(org.id)}
-                  className="bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors"
-                >
-                  <p className="text-white font-bold">{org.name}</p>
-                  <p className="text-gray-400 text-sm">📍 {org.location}</p>
+                <div key={org.id} className="flex items-center justify-between bg-gray-800 rounded-lg p-3">
+                  <div 
+                    onClick={() => viewOrganizationDetails(org.id)}
+                    className="flex-1 cursor-pointer hover:text-blue-400 transition-colors"
+                  >
+                    <p className="text-white font-bold">{org.name}</p>
+                    <p className="text-gray-400 text-sm">📍 {org.location}</p>
+                  </div>
+                  <button
+                    onClick={() => openEditOrganization(org)}
+                    className="text-blue-400 hover:text-blue-300 text-sm bg-blue-900/20 px-2 py-1 rounded transition-colors"
+                    title="Modifica organizzazione"
+                  >
+                    ✏️
+                  </button>
                 </div>
               ))}
             </div>
             <button 
-              onClick={() => setShowCreateOrganization(true)}
+              onClick={() => {
+                fetchOrganizations();
+                setShowCreateOrganization(true);
+              }}
               className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
             >
               ➕ Crea Organizzazione
@@ -988,7 +1111,10 @@ function App() {
                 </div>
               </div>
               <button 
-                onClick={() => setShowCreateCapoPromoter(true)}
+                onClick={() => {
+                  fetchOrganizations();
+                  setShowCreateCapoPromoter(true);
+                }}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold transition-colors w-full"
               >
                 ➕ Crea Capo Promoter
@@ -1013,11 +1139,29 @@ function App() {
           <h3 className="text-xl font-bold text-white mb-4">🎉 Tutti gli Eventi</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
             {dashboardData.events?.slice(0, 6).map(event => (
-              <div key={event.id} className="bg-gray-800 rounded-lg p-4">
-                <h4 className="text-white font-bold">{event.name}</h4>
-                <p className="text-gray-300 text-sm">🏢 {event.organization}</p>
-                <p className="text-gray-300 text-sm">📍 {event.location}</p>
-                <p className="text-gray-300 text-sm">📅 {event.date}</p>
+              <div key={event.id} className="bg-gray-800 rounded-lg p-4 flex items-center justify-between">
+                <div className="flex-1">
+                  <h4 className="text-white font-bold">{event.name}</h4>
+                  <p className="text-gray-300 text-sm">🏢 {event.organization}</p>
+                  <p className="text-gray-300 text-sm">📍 {event.location}</p>
+                  <p className="text-gray-300 text-sm">📅 {event.date}</p>
+                </div>
+                <div className="flex flex-col space-y-1 ml-2">
+                  <button
+                    onClick={() => openEditEvent(event)}
+                    className="text-blue-400 hover:text-blue-300 text-xs bg-blue-900/20 px-2 py-1 rounded transition-colors"
+                    title="Modifica evento"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => deleteEvent(event.id)}
+                    className="text-red-400 hover:text-red-300 text-xs bg-red-900/20 px-2 py-1 rounded transition-colors"
+                    title="Elimina evento"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -1032,11 +1176,37 @@ function App() {
     );
   };
 
+  // DELETE EVENT FUNCTION FOR CLUBLY FOUNDER
+  const deleteEvent = async (eventId) => {
+    if (window.confirm('Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.')) {
+      try {
+        const response = await fetch(`${backendUrl}/api/events/${eventId}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.ok) {
+          alert('Evento eliminato con successo!');
+          fetchDashboardData(); // Refresh dashboard data
+          fetchEvents(); // Refresh events list
+        } else {
+          const error = await response.json();
+          alert(`Errore: ${error.detail}`);
+        }
+      } catch (error) {
+        console.error('Error deleting event:', error);
+        alert('Errore durante l\'eliminazione dell\'evento');
+      }
+    }
+  };
+
   const EventCard = ({ event }) => (
     <div className="bg-gray-900 border border-red-600 rounded-lg overflow-hidden shadow-lg hover:shadow-red-500/20 transition-all duration-300 transform hover:scale-105">
       <div className="h-48 bg-gradient-to-br from-red-600 to-black relative overflow-hidden">
         <img 
-          src={event.image || 'https://images.pexels.com/photos/11748607/pexels-photo-11748607.jpeg'} 
+          src={event.event_poster || event.image || 'https://images.pexels.com/photos/11748607/pexels-photo-11748607.jpeg'} 
           alt={event.name}
           className="w-full h-full object-cover opacity-80"
         />
@@ -1073,7 +1243,7 @@ function App() {
       <div className="bg-gray-900 border border-red-600 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="relative h-64">
           <img 
-            src={selectedEvent?.image || 'https://images.pexels.com/photos/11748607/pexels-photo-11748607.jpeg'} 
+            src={selectedEvent?.event_poster || selectedEvent?.image || 'https://images.pexels.com/photos/11748607/pexels-photo-11748607.jpeg'} 
             alt={selectedEvent?.name}
             className="w-full h-full object-cover"
           />
@@ -1208,12 +1378,22 @@ function App() {
                 {authMode === 'login' ? 'Accedi a Clubly' : 'Unisciti a Clubly'}
               </h2>
               <button 
-                onClick={() => setShowAuth(false)}
+                onClick={() => {
+                  setShowAuth(false);
+                  setAuthError('');
+                }}
                 className="text-gray-400 hover:text-red-400 text-2xl font-bold transition-colors"
               >
                 ✕
               </button>
             </div>
+
+            {/* ERROR MESSAGE */}
+            {authError && (
+              <div className="mb-4 p-3 bg-red-900/30 border border-red-600 rounded-lg">
+                <p className="text-red-400 text-sm">{authError}</p>
+              </div>
+            )}
             
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="relative">
@@ -1317,7 +1497,10 @@ function App() {
             
             <div className="mt-6 text-center">
               <button 
-                onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                onClick={() => {
+                  setAuthMode(authMode === 'login' ? 'register' : 'login');
+                  setAuthError('');
+                }}
                 className="text-red-400 hover:text-red-300 text-sm font-medium transition-colors"
               >
                 {authMode === 'login' ? '✨ Non hai un account? Registrati ora' : '👋 Hai già un account? Accedi'}
@@ -1453,80 +1636,7 @@ function App() {
     );
   };
 
-  // New Modal Components
-  const UserProfileModal = () => {
-    if (!selectedUserProfile) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div className="bg-gray-900 border border-red-600 rounded-xl max-w-md w-full shadow-2xl">
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-white text-2xl font-bold">Profilo Utente</h2>
-              <button 
-                onClick={() => setShowUserProfile(false)}
-                className="text-gray-400 hover:text-red-400 text-2xl font-bold transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="text-center mb-6">
-              {selectedUserProfile.profile_image ? (
-                <img 
-                  src={selectedUserProfile.profile_image} 
-                  alt="Profile" 
-                  className="w-24 h-24 rounded-full object-cover mx-auto border-4 border-red-500"
-                />
-              ) : (
-                <div className="w-24 h-24 bg-red-600 rounded-full flex items-center justify-center mx-auto">
-                  <span className="text-white text-3xl font-bold">
-                    {selectedUserProfile.nome?.charAt(0)}
-                  </span>
-                </div>
-              )}
-              <h3 className="text-white text-xl font-bold mt-4">
-                {selectedUserProfile.nome} {selectedUserProfile.cognome}
-              </h3>
-              <p className="text-gray-400">@{selectedUserProfile.username}</p>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="bg-gray-800 rounded-lg p-4">
-                <h4 className="text-red-400 font-bold mb-2">📍 Informazioni</h4>
-                <p className="text-gray-300"><span className="text-gray-400">Città:</span> {selectedUserProfile.citta}</p>
-                <p className="text-gray-300"><span className="text-gray-400">Ruolo:</span> {
-                  selectedUserProfile.ruolo === 'clubly_founder' ? '👑 Clubly Founder' :
-                  selectedUserProfile.ruolo === 'capo_promoter' ? '🎯 Capo Promoter' :
-                  selectedUserProfile.ruolo === 'promoter' ? '🎪 Promoter' : '🎉 Cliente'
-                }</p>
-                {selectedUserProfile.organization && (
-                  <p className="text-gray-300"><span className="text-gray-400">Organizzazione:</span> {selectedUserProfile.organization}</p>
-                )}
-              </div>
-              
-              {selectedUserProfile.biografia && (
-                <div className="bg-gray-800 rounded-lg p-4">
-                  <h4 className="text-red-400 font-bold mb-2">📝 Biografia</h4>
-                  <p className="text-gray-300">{selectedUserProfile.biografia}</p>
-                </div>
-              )}
-              
-              <div className="bg-gray-800 rounded-lg p-4">
-                <h4 className="text-red-400 font-bold mb-2">📅 Membro da</h4>
-                <p className="text-gray-300">
-                  {new Date(selectedUserProfile.created_at).toLocaleDateString('it-IT', {
-                    year: 'numeric', month: 'long', day: 'numeric'
-                  })}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
+  // IMPROVED BOOKING MODAL - NO PROMOTER SELECTION
   const BookingModal = () => (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
       <div className="bg-gray-900 border border-red-600 rounded-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -1534,10 +1644,7 @@ function App() {
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-white text-xl font-bold">Prenota per {selectedEvent?.name}</h2>
             <button 
-              onClick={() => {
-                setShowBooking(false);
-                setSelectedPromoterId(null);
-              }}
+              onClick={() => setShowBooking(false)}
               className="text-gray-400 hover:text-red-400 text-xl"
             >
               ✕
@@ -1554,241 +1661,126 @@ function App() {
               <p className="text-gray-300 text-sm"><span className="text-gray-400">Organizzazione:</span> {selectedEvent?.organization}</p>
             </div>
 
-            {/* PR Selection */}
-            {availablePromoters.length > 0 && (
-              <div>
-                <label className="text-white font-bold block mb-2">🎯 Scegli il tuo PR</label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  <label className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
-                    <input 
-                      type="radio" 
-                      name="promoter" 
-                      value=""
-                      checked={selectedPromoterId === null}
-                      onChange={() => setSelectedPromoterId(null)}
-                      className="text-red-600" 
-                    />
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold">🎲</span>
-                      </div>
-                      <div>
-                        <span className="text-white font-semibold">Assegnazione Automatica</span>
-                        <p className="text-gray-400 text-xs">Il sistema sceglierà il PR più disponibile</p>
-                      </div>
-                    </div>
-                  </label>
-                  
-                  {availablePromoters.map(promoter => (
-                    <label key={promoter.id} className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
-                      <input 
-                        type="radio" 
-                        name="promoter" 
-                        value={promoter.id}
-                        checked={selectedPromoterId === promoter.id}
-                        onChange={() => setSelectedPromoterId(promoter.id)}
-                        className="text-red-600" 
-                      />
-                      <div className="flex items-center space-x-3">
-                        {promoter.profile_image ? (
-                          <img 
-                            src={promoter.profile_image} 
-                            alt={promoter.nome}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center">
-                            <span className="text-white font-bold">{promoter.nome?.charAt(0)}</span>
-                          </div>
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-white font-semibold">@{promoter.username}</span>
-                            <span className="text-sm">
-                              {promoter.ruolo === 'capo_promoter' ? '🎯' : '🎪'}
-                            </span>
-                          </div>
-                          <p className="text-gray-300 text-sm">{promoter.nome} {promoter.cognome}</p>
-                          {promoter.biografia && (
-                            <p className="text-gray-400 text-xs truncate">{promoter.biografia}</p>
-                          )}
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            )}
-            
+            {/* AUTOMATIC ASSIGNMENT NOTICE */}
+            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4">
+              <h3 className="text-blue-400 font-bold mb-2">🤖 Assegnazione Automatica PR</h3>
+              <p className="text-blue-300 text-sm">
+                Il tuo PR verrà assegnato automaticamente in base alla disponibilità. 
+                Riceverai il promoter con meno prenotazioni per garantire il miglior servizio!
+              </p>
+            </div>
+
+            {/* Booking Type */}
             <div>
-              <label className="text-white font-bold block mb-2">🎫 Tipo di Prenotazione</label>
+              <label className="text-white font-bold block mb-2">🎫 Tipo di prenotazione</label>
               <div className="space-y-2">
                 <label className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
                   <input 
                     type="radio" 
-                    name="bookingType" 
-                    value="lista"
+                    value="lista" 
+                    checked={bookingType === 'lista'} 
                     onChange={(e) => setBookingType(e.target.value)}
                     className="text-red-600" 
                   />
-                  <div>
-                    <span className="text-gray-300 font-semibold">Lista / Prevendita</span>
-                    <p className="text-gray-400 text-xs">Ingresso garantito alla serata</p>
-                  </div>
+                  <span className="text-white">📝 Lista/Prevendita</span>
                 </label>
                 <label className="flex items-center space-x-2 bg-gray-800 rounded-lg p-3 cursor-pointer hover:bg-gray-700 transition-colors">
                   <input 
                     type="radio" 
-                    name="bookingType" 
-                    value="tavolo"
+                    value="tavolo" 
+                    checked={bookingType === 'tavolo'} 
                     onChange={(e) => setBookingType(e.target.value)}
                     className="text-red-600" 
                   />
-                  <div>
-                    <span className="text-gray-300 font-semibold">Tavolo</span>
-                    <p className="text-gray-400 text-xs">Tavolo riservato per il tuo gruppo</p>
-                  </div>
+                  <span className="text-white">🍾 Tavolo</span>
                 </label>
               </div>
             </div>
-            
+
+            {/* Party Size */}
             <div>
-              <label className="text-white font-bold block mb-2">👥 Numero di Persone</label>
-              <select 
+              <label className="text-white font-bold block mb-2">👥 Numero persone</label>
+              <input
+                type="number"
+                min="1"
+                max={selectedEvent?.max_party_size || 10}
                 value={partySize}
-                onChange={(e) => setPartySize(parseInt(e.target.value))}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-3 text-white focus:border-red-600 outline-none transition-all"
-              >
-                {[...Array(selectedEvent?.max_party_size || 10)].map((_, i) => (
-                  <option key={i+1} value={i+1}>
-                    {i+1} {i === 0 ? 'persona' : 'persone'}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) => setPartySize(parseInt(e.target.value) || 1)}
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+              />
             </div>
-            
+
             <button 
               onClick={handleBookingSubmit}
               disabled={!bookingType}
-              className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 disabled:from-gray-600 disabled:to-gray-700 text-white py-3 rounded-lg font-bold text-lg transition-all duration-300 transform hover:scale-105 shadow-lg disabled:transform-none"
+              className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white py-3 rounded-lg font-bold text-lg transition-colors disabled:cursor-not-allowed"
             >
-              🎉 Conferma Prenotazione
+              {!bookingType ? 'Seleziona tipo prenotazione' : '🎉 Conferma Prenotazione'}
             </button>
-            
-            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-3">
-              <p className="text-blue-300 text-sm text-center">
-                {selectedPromoterId 
-                  ? `Il PR ${availablePromoters.find(p => p.id === selectedPromoterId)?.nome} ti contatterà presto!`
-                  : 'Un promoter ti contatterà presto per finalizzare la prenotazione'
-                }
-              </p>
-            </div>
           </div>
         </div>
       </div>
     </div>
   );
 
-  const ChatModal = () => {
-    const [messageText, setMessageText] = useState('');
-    const [isSending, setIsSending] = useState(false);
-
-    // Improved message sending function
-    const handleSendMessage = async () => {
-      if (!messageText.trim() || !selectedChat || isSending) return;
-      
-      setIsSending(true);
-      try {
-        const response = await fetch(`${backendUrl}/api/chats/${selectedChat.id}/messages`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({
-            chat_id: selectedChat.id,
-            sender_id: currentUser.id,
-            sender_role: currentUser.ruolo,
-            message: messageText
-          })
-        });
-        
-        if (response.ok) {
-          setMessageText('');
-          await fetchChatMessages(selectedChat.id);
-        } else {
-          console.error('Failed to send message');
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
-      } finally {
-        setIsSending(false);
-      }
-    };
-
-    const handleKeyPress = (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        handleSendMessage();
-      }
-    };
-
-    return (
-      <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
-        <div className="bg-gray-900 border border-red-600 rounded-lg w-full max-w-5xl h-[85vh] flex">
-          {/* Chat List Sidebar */}
-          <div className="w-1/3 border-r border-red-600 flex flex-col">
-            <div className="p-4 border-b border-red-600">
-              <div className="flex justify-between items-center">
-                <h2 className="text-white text-xl font-bold">💬 Le Tue Chat</h2>
-                <button 
-                  onClick={() => setShowChat(false)}
-                  className="text-gray-400 hover:text-red-400 text-xl"
-                >
-                  ✕
-                </button>
-              </div>
+  // ENHANCED CHAT MODAL 
+  const ChatModal = () => (
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <div className="bg-gray-900 border border-green-600 rounded-xl max-w-4xl w-full h-[80vh] shadow-2xl">
+        <div className="flex h-full">
+          {/* Chat List */}
+          <div className="w-1/3 border-r border-gray-700 p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-white text-xl font-bold">💬 Chat</h3>
+              <button 
+                onClick={() => setShowChat(false)}
+                className="text-gray-400 hover:text-green-400 text-xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              >
+                ✕
+              </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto">
+            <div className="space-y-2 h-full overflow-y-auto">
               {chats.map(chat => (
                 <div 
-                  key={chat.id} 
+                  key={chat.id}
                   onClick={() => openChat(chat)}
-                  className={`p-4 border-b border-gray-700 cursor-pointer hover:bg-gray-800 transition-colors ${
-                    selectedChat?.id === chat.id ? 'bg-red-600/20' : ''
+                  className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                    selectedChat?.id === chat.id ? 
+                    'bg-green-700 border border-green-500' : 
+                    'bg-gray-800 hover:bg-gray-700 border border-transparent'
                   }`}
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-                      {chat.other_participant?.profile_image ? (
-                        <img 
-                          src={chat.other_participant.profile_image} 
-                          alt="Profile"
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-white font-bold">
-                          {chat.other_participant?.nome?.charAt(0) || '?'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h3 
-                          className="text-white font-semibold cursor-pointer hover:text-red-400 transition-colors"
-                          onClick={() => viewUserProfile(chat.other_participant?.id)}
-                        >
-                          @{chat.other_participant?.username}
-                        </h3>
-                        <span className="text-xs bg-gray-700 px-2 py-1 rounded">
-                          {chat.participant_role === 'promoter' ? '🎪' : '🎉'}
+                    {/* Profile Image */}
+                    {chat.other_participant?.profile_image ? (
+                      <img 
+                        src={chat.other_participant.profile_image} 
+                        alt={chat.other_participant.nome}
+                        className="w-10 h-10 rounded-full object-cover border-2 border-green-500"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center border-2 border-green-500">
+                        <span className="text-white font-bold text-sm">
+                          {chat.other_participant?.nome?.charAt(0)}
                         </span>
                       </div>
-                      <p className="text-gray-400 text-sm">{chat.event?.name}</p>
+                    )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold truncate">
+                        {chat.other_participant?.nome} {chat.other_participant?.cognome}
+                      </p>
+                      <p className="text-gray-400 text-xs">
+                        {chat.participant_role === 'promoter' ? '🎪' : '🎉'} 
+                        @{chat.other_participant?.username}
+                      </p>
+                      <p className="text-gray-300 text-sm font-medium">
+                        🎉 {chat.event?.name}
+                      </p>
                       {chat.last_message && (
-                        <p className="text-gray-500 text-xs truncate">
-                          {chat.last_message.message.substring(0, 50)}...
+                        <p className="text-gray-400 text-xs truncate mt-1">
+                          {chat.last_message.message.substring(0, 30)}...
                         </p>
                       )}
                     </div>
@@ -1797,325 +1789,289 @@ function App() {
               ))}
               
               {chats.length === 0 && (
-                <div className="p-4 text-center text-gray-400">
-                  Nessuna chat disponibile
+                <div className="text-center text-gray-400 py-8">
+                  <p>Nessuna chat attiva</p>
+                  <p className="text-xs mt-2">Prenota un evento per iniziare una chat!</p>
                 </div>
               )}
             </div>
           </div>
-          
-          {/* Chat Messages Area */}
+
+          {/* Chat Messages */}
           <div className="flex-1 flex flex-col">
             {selectedChat ? (
               <>
                 {/* Chat Header */}
-                <div className="p-4 border-b border-red-600 bg-gray-800">
+                <div className="border-b border-gray-700 p-4 bg-gray-800">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
-                      {selectedChat.other_participant?.profile_image ? (
-                        <img 
-                          src={selectedChat.other_participant.profile_image} 
-                          alt="Profile"
-                          className="w-12 h-12 rounded-full object-cover"
-                        />
-                      ) : (
+                    {selectedChat.other_participant?.profile_image ? (
+                      <img 
+                        src={selectedChat.other_participant.profile_image} 
+                        alt={selectedChat.other_participant.nome}
+                        className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center border-2 border-green-500">
                         <span className="text-white font-bold">
-                          {selectedChat.other_participant?.nome?.charAt(0) || '?'}
+                          {selectedChat.other_participant?.nome?.charAt(0)}
                         </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     <div>
-                      <h3 
-                        className="text-white font-semibold cursor-pointer hover:text-red-400 transition-colors"
-                        onClick={() => viewUserProfile(selectedChat.other_participant?.id)}
-                      >
-                        @{selectedChat.other_participant?.username}
-                      </h3>
+                      <h4 className="text-white font-bold text-lg">
+                        {selectedChat.other_participant?.nome} {selectedChat.other_participant?.cognome}
+                      </h4>
                       <p className="text-gray-400 text-sm">
-                        {selectedChat.participant_role === 'promoter' ? '🎪 Promoter' : '🎉 Cliente'} • {selectedChat.event?.name}
+                        {selectedChat.participant_role === 'promoter' ? '🎪 Promoter' : '🎉 Cliente'} • 
+                        @{selectedChat.other_participant?.username}
+                      </p>
+                      <p className="text-green-400 text-sm font-medium">
+                        📅 {selectedChat.event?.name}
                       </p>
                     </div>
                   </div>
                 </div>
-                
+
+                {/* Messages */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-800/30">
                   {isLoadingChatMessages ? (
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="text-center">
-                        <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto mb-4"></div>
-                        <p className="text-gray-400">Caricamento messaggi...</p>
-                      </div>
+                    <div className="text-center text-gray-400 py-8">
+                      <p>Caricamento messaggi...</p>
                     </div>
                   ) : (
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                      {chatMessages.map(message => (
-                        <div 
-                          key={message.id} 
-                          className={`flex ${message.sender_id === currentUser.id ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div 
-                            className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-                              message.sender_id === currentUser.id 
-                                ? 'bg-red-600 text-white rounded-br-sm' 
-                                : 'bg-gray-700 text-white rounded-bl-sm'
-                            }`}
-                          >
-                            <p className="whitespace-pre-wrap break-words">{message.message}</p>
-                            <p className="text-xs opacity-75 mt-2">
-                              {new Date(message.timestamp).toLocaleTimeString('it-IT', {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
+                    chatMessages.map(message => (
+                      <div 
+                        key={message.id} 
+                        className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
+                      >
+                        <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-lg ${
+                          message.sender_id === currentUser?.id ? 
+                          'bg-green-600 text-white' : 
+                          'bg-gray-700 text-gray-100'
+                        }`}>
+                          {message.sender_id !== currentUser?.id && (
+                            <p 
+                              className="text-green-400 text-xs font-semibold mb-1 cursor-pointer hover:text-green-300 transition-colors"
+                              onClick={() => handleUsernameClick(message.sender_id)}
+                            >
+                              {selectedChat.other_participant?.nome} {selectedChat.other_participant?.cognome}
                             </p>
-                          </div>
+                          )}
+                          <p className="text-sm leading-relaxed break-words">
+                            {message.message}
+                          </p>
+                          <p className={`text-xs mt-2 ${
+                            message.sender_id === currentUser?.id ? 'text-green-200' : 'text-gray-400'
+                          }`}>
+                            {new Date(message.timestamp).toLocaleTimeString('it-IT', { 
+                              hour: '2-digit', minute: '2-digit' 
+                            })}
+                          </p>
                         </div>
-                      ))}
-                      
-                      {chatMessages.length === 0 && !isLoadingChatMessages && (
-                        <div className="flex-1 flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-4xl mb-4">💬</div>
-                            <p className="text-gray-400">Nessun messaggio ancora</p>
-                            <p className="text-gray-500 text-sm">Inizia la conversazione!</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                      </div>
+                    ))
                   )}
-                
+                </div>
+
                 {/* Message Input */}
-                <div className="p-4 border-t border-red-600 bg-gray-800">
+                <div className="border-t border-gray-700 p-4 bg-gray-800">
                   <div className="flex space-x-3">
                     <textarea
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Scrivi un messaggio... (Invio per inviare)"
-                      className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none resize-none"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          sendMessage();
+                        }
+                      }}
+                      placeholder="Scrivi un messaggio... (Premi Enter per inviare)"
+                      className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all resize-none"
                       rows="2"
-                      disabled={isSending}
                     />
                     <button 
-                      onClick={handleSendMessage}
-                      disabled={!messageText.trim() || isSending}
-                      className="bg-red-600 hover:bg-red-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg font-bold transition-colors flex items-center space-x-2"
+                      onClick={sendMessage}
+                      disabled={!newMessage.trim()}
+                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-bold transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
                     >
-                      {isSending ? (
-                        <>
-                          <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
-                          <span>Invio...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>📤</span>
-                          <span>Invia</span>
-                        </>
-                      )}
+                      <span>📤</span>
+                      <span>Invia</span>
                     </button>
                   </div>
+                  <p className="text-gray-400 text-xs mt-2">
+                    💡 Puoi usare Shift+Enter per andare a capo
+                  </p>
                 </div>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center">
-                <div className="text-center">
+              <div className="flex-1 flex items-center justify-center bg-gray-800/30">
+                <div className="text-center text-gray-400">
                   <div className="text-6xl mb-4">💬</div>
-                  <p className="text-gray-400 text-lg">Seleziona una chat per iniziare</p>
+                  <p className="text-xl font-semibold">Seleziona una chat</p>
+                  <p className="text-sm mt-2">Scegli una conversazione dalla lista per iniziare a chattare</p>
                 </div>
               </div>
             )}
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* New Header Component */}
-      {currentUser && (
-        <Header 
-          currentUser={currentUser}
-          onOpenOwnProfile={openOwnProfile}
-          onLogout={handleLogout}
-          onOpenChat={() => setShowChat(true)}
-          onBackToMain={() => setCurrentView('main')}
-        />
-      )}
+    <div className="min-h-screen bg-black">
+      {/* Header with notifications badge */}
+      <Header 
+        currentUser={currentUser} 
+        currentView={currentView} 
+        setCurrentView={setCurrentView}
+        onLogout={handleLogout}
+        onOpenProfile={openOwnProfile}
+        notificationsCount={notificationsCount}
+      />
 
-      {/* Main Content - Conditional Rendering based on currentView */}
+      {/* Main Content */}
       {currentView === 'main' ? (
-        <>
-          {/* Header for non-logged in users */}
-          {!currentUser && (
-            <header className="bg-gray-900 border-b border-red-600">
-              <div className="container mx-auto px-4 py-4">
-                <div className="flex justify-between items-center">
-                  <h1 className="text-2xl font-bold text-red-500">CLUBLY</h1>
-                  <button 
-                    onClick={() => setShowAuth(true)}
-                    className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded font-bold transition-colors"
-                  >
-                    Accedi
-                  </button>
-                </div>
-              </div>
-            </header>
-          )}
+        <div className="container mx-auto px-4 py-8">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl font-bold text-white mb-4 bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent">
+              🎉 Clubly
+            </h1>
+            <p className="text-gray-300 text-xl">Scopri la vita notturna che ami</p>
+          </div>
 
-          {/* Dashboard Navigation for logged in users */}
-          {currentUser && (
-            <div className="bg-gray-800 border-b border-gray-700">
-              <div className="container mx-auto px-4 py-3">
-                <div className="flex justify-center space-x-4">
-                  {currentUser.ruolo !== 'cliente' && (
-                    <button 
-                      onClick={() => setCurrentView(
-                        currentUser.ruolo === 'promoter' ? 'promoter' :
-                        currentUser.ruolo === 'capo_promoter' ? 'capo-promoter' :
-                        currentUser.ruolo === 'clubly_founder' ? 'clubly-founder' : 'main'
-                      )}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold transition-colors"
-                    >
-                      🎛️ La Mia Dashboard
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Hero Section */}
-          <section className="bg-gradient-to-br from-red-600 via-red-800 to-black py-16">
-            <div className="container mx-auto px-4 text-center">
-              <h2 className="text-4xl md:text-6xl font-bold mb-4">
-                La Notte è <span className="text-red-400">NOSTRA</span>
-              </h2>
-              <p className="text-xl md:text-2xl text-gray-200 mb-8">
-                Prenota i migliori eventi e tavoli nelle discoteche più esclusive
-              </p>
-            </div>
-          </section>
-
-          {/* Events Section */}
-          <section className="py-16">
-            <div className="container mx-auto px-4">
-              <h2 className="text-3xl font-bold text-center mb-12">
-                Eventi <span className="text-red-500">in Programma</span>
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {events.map(event => (
-                  <EventCard key={event.id} event={event} />
-                ))}
-              </div>
-              
-              {events.length === 0 && (
-                <div className="text-center text-gray-400 py-16">
-                  <p className="text-xl">Nessun evento disponibile al momento</p>
-                  <p>Torna presto per scoprire i prossimi eventi!</p>
-                </div>
-              )}
-            </div>
-          </section>
-        </>
-      ) : (
-        /* Dashboard Content */
-        <>
-          {currentView === 'promoter' && <PromoterDashboard />}
-          {currentView === 'capo-promoter' && <CapoPromoterDashboard />}
-          {currentView === 'clubly-founder' && <ClublyFounderDashboard />}
-        </>
-      )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map(event => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        </div>
+      ) : currentView === 'promoter' ? (
+        <PromoterDashboard />
+      ) : currentView === 'capo-promoter' ? (
+        <CapoPromoterDashboard />
+      ) : currentView === 'clubly-founder' ? (
+        <ClublyFounderDashboard />
+      ) : null}
 
       {/* Modals */}
-      {showEventDetails && selectedEvent && <EventDetailsModal />}
       {showAuth && <AuthModal />}
       {showUserSetup && <UserSetupModal />}
-      {showBooking && selectedEvent && <BookingModal />}
+      {showChangePassword && (
+        <ChangePasswordModal 
+          show={showChangePassword} 
+          onClose={() => setShowChangePassword(false)} 
+          onSubmit={handlePasswordChange} 
+        />
+      )}
+      {showEventDetails && <EventDetailsModal />}
+      {showBooking && <BookingModal />}
       {showChat && <ChatModal />}
       
       {/* User Profile Modals */}
-      <UserProfileModal 
-        show={showUserProfile}
-        onClose={() => {
-          setShowUserProfile(false);
-          setSelectedUserProfile(null);
-        }}
-        userProfile={selectedUserProfile}
-        isOwnProfile={false}
-      />
+      {showUserProfile && (
+        <UserProfileModal 
+          show={showUserProfile} 
+          onClose={() => setShowUserProfile(false)}
+          userProfile={selectedUserProfile}
+          isOwnProfile={false}
+        />
+      )}
       
-      <UserProfileModal 
-        show={showOwnProfile}
-        onClose={() => {
-          setShowOwnProfile(false);
-          setSelectedUserProfile(null);
-        }}
-        userProfile={selectedUserProfile}
-        isOwnProfile={true}
-        onEdit={() => {
-          setShowOwnProfile(false);
-          setShowEditOwnProfile(true);
-        }}
-      />
+      {showOwnProfile && (
+        <UserProfileModal 
+          show={showOwnProfile} 
+          onClose={() => setShowOwnProfile(false)}
+          userProfile={selectedUserProfile}
+          isOwnProfile={true}
+          onEdit={() => {
+            setShowOwnProfile(false);
+            setShowEditOwnProfile(true);
+          }}
+        />
+      )}
 
-      {/* Edit Profile Modal */}
-      <EditProfileModal 
-        show={showEditOwnProfile}
-        onClose={() => setShowEditOwnProfile(false)}
-        currentUser={currentUser}
-        onSubmit={editUserProfile}
-      />
-      
-      {/* Enhanced Modals */}
-      <UserSearchModal 
-        show={showUserSearch}
-        onClose={() => setShowUserSearch(false)}
-        onSearch={searchUsers}
-        searchResults={searchResults}
-        onViewProfile={viewUserProfile}
-      />
-      
-      <CreateEventModal 
-        show={showCreateEvent}
-        onClose={() => setShowCreateEvent(false)}
-        onSubmit={handleCreateEvent}
-        userRole={currentUser?.ruolo}
-      />
-      
-      <EditEventModal 
-        show={showEditEvent}
-        onClose={() => {
-          setShowEditEvent(false);
-          setSelectedEventToEdit(null);
-        }}
-        event={selectedEventToEdit}
-        onSubmit={updateEvent}
-      />
-      
-      <CreateOrganizationModal 
-        show={showCreateOrganization}
-        onClose={() => setShowCreateOrganization(false)}
-        onSubmit={createOrganization}
-      />
-      
-      <CreateCapoPromoterModal 
-        show={showCreateCapoPromoter}
-        onClose={() => setShowCreateCapoPromoter(false)}
-        onSubmit={createCapoPromoter}
-      />
-      
-      <CreatePromoterModal 
-        show={showCreatePromoter}
-        onClose={() => setShowCreatePromoter(false)}
-        onSubmit={createPromoter}
-      />
-      
-      <OrganizationDetailsModal 
-        show={showOrganizationDetails}
-        onClose={() => setShowOrganizationDetails(false)}
-        organization={selectedOrganization}
-        onViewProfile={viewUserProfile}
-      />
+      {showEditOwnProfile && (
+        <EditProfileModal 
+          show={showEditOwnProfile} 
+          onClose={() => setShowEditOwnProfile(false)}
+          currentUser={currentUser}
+          onSubmit={editUserProfile}
+        />
+      )}
+
+      {/* Search and Creation Modals */}
+      {showUserSearch && (
+        <UserSearchModal 
+          show={showUserSearch} 
+          onClose={() => setShowUserSearch(false)}
+          onSearch={searchUsers}
+          searchResults={searchResults}
+          onViewProfile={viewUserProfile}
+        />
+      )}
+
+      {showCreateEvent && (
+        <CreateEventModal 
+          show={showCreateEvent} 
+          onClose={() => setShowCreateEvent(false)}
+          onSubmit={handleCreateEvent}
+          userRole={currentUser?.ruolo}
+        />
+      )}
+
+      {showEditEvent && (
+        <EditEventModal 
+          show={showEditEvent} 
+          onClose={() => setShowEditEvent(false)}
+          event={selectedEventToEdit}
+          onSubmit={updateEvent}
+        />
+      )}
+
+      {showCreateOrganization && (
+        <CreateOrganizationModal 
+          show={showCreateOrganization} 
+          onClose={() => setShowCreateOrganization(false)}
+          onSubmit={createOrganization}
+        />
+      )}
+
+      {showCreateCapoPromoter && (
+        <CreateCapoPromoterModal 
+          show={showCreateCapoPromoter} 
+          onClose={() => setShowCreateCapoPromoter(false)}
+          onSubmit={createCapoPromoter}
+          organizations={organizations}
+        />
+      )}
+
+      {showCreatePromoter && (
+        <CreatePromoterModal 
+          show={showCreatePromoter} 
+          onClose={() => setShowCreatePromoter(false)}
+          onSubmit={createPromoter}
+        />
+      )}
+
+      {showOrganizationDetails && (
+        <OrganizationDetailsModal 
+          show={showOrganizationDetails} 
+          onClose={() => setShowOrganizationDetails(false)}
+          organization={selectedOrganization}
+          onViewProfile={viewUserProfile}
+        />
+      )}
+
+      {showEditOrganization && (
+        <EditOrganizationModal 
+          show={showEditOrganization} 
+          onClose={() => setShowEditOrganization(false)}
+          organization={selectedOrganization}
+          availableCapoPromoters={availableCapoPromoters}
+          onSubmit={editOrganization}
+        />
+      )}
     </div>
   );
 }
