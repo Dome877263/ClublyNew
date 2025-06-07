@@ -77,7 +77,7 @@ class TemporaryCredentials(BaseModel):
     email: str
     password: str = "Password1"
     ruolo: str  # "promoter" or "capo_promoter"
-    organization: Optional[str] = None
+    organization: str  # Required - must select from existing organizations
 
 class PasswordChange(BaseModel):
     current_password: str
