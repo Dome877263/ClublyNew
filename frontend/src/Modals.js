@@ -287,7 +287,7 @@ export const UserSearchModal = ({ show, onClose, onSearch, searchResults, onView
   );
 };
 
-// Create Event Modal - MIGLIORATO con orario libero e design DJ migliorato
+// Create Event Modal - MIGLIORATO con locandina eventi e validazione date
 export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
   const [eventData, setEventData] = useState({
     name: '',
@@ -300,10 +300,12 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
     location_address: '',
     total_tables: '',
     table_types: '',
-    max_party_size: '10'
+    max_party_size: '10',
+    event_poster: ''
   });
 
   const [newDj, setNewDj] = useState('');
+  const [posterPreview, setPosterPreview] = useState(null);
 
   // Add DJ to lineup
   const addDj = () => {
@@ -322,8 +324,30 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
     setEventData({...eventData, lineup: newLineup});
   };
 
+  // Handle poster upload
+  const handlePosterUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEventData({...eventData, event_poster: reader.result});
+        setPosterPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Validate date and time are not in the past
+    const eventDateTime = new Date(`${eventData.date}T${eventData.start_time}`);
+    const now = new Date();
+    if (eventDateTime <= now) {
+      alert('Non puoi creare eventi con date o orari nel passato!');
+      return;
+    }
+    
     const formattedData = {
       ...eventData,
       table_types: eventData.table_types ? eventData.table_types.split(',').map(type => type.trim()).filter(type => type) : [],
@@ -364,6 +388,32 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Event Poster Upload */}
+            <div className="space-y-2">
+              <label className="text-red-400 font-bold block">🖼️ Locandina Evento</label>
+              <div className="flex items-center space-x-4">
+                {posterPreview && (
+                  <img 
+                    src={posterPreview} 
+                    alt="Preview locandina" 
+                    className="w-24 h-32 object-cover rounded-lg border-2 border-red-500"
+                  />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePosterUpload}
+                  className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
+                />
+              </div>
+              <p className="text-gray-400 text-xs">
+                {userRole === 'clubly_founder' 
+                  ? '👑 Come Clubly Founder puoi aggiungere la locandina' 
+                  : '🎯 Il Capo Promoter potrà modificare la locandina successivamente'
+                }
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Required Fields */}
               <div className="col-span-full">
@@ -385,6 +435,7 @@ export const CreateEventModal = ({ show, onClose, onSubmit, userRole }) => {
                 onChange={(e) => setEventData({...eventData, date: e.target.value})}
                 className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
                 required
+                min={new Date().toISOString().split('T')[0]}
               />
               
               {/* ORARIO LIBERO - input time invece di select */}
