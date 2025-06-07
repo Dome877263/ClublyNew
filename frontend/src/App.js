@@ -52,6 +52,13 @@ function App() {
   const [showEditOwnProfile, setShowEditOwnProfile] = useState(false);
   const [availablePromoters, setAvailablePromoters] = useState([]);
   const [selectedPromoterId, setSelectedPromoterId] = useState(null);
+  
+  // NEW STATES FOR REQUIREMENTS
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showEditOrganization, setShowEditOrganization] = useState(false);
+  const [organizations, setOrganizations] = useState([]);
+  const [availableCapoPromoters, setAvailableCapoPromoters] = useState([]);
+  const [notificationsCount, setNotificationsCount] = useState(0);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
