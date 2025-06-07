@@ -454,7 +454,7 @@ async def login(user: UserLogin):
     })
     
     if not db_user or not verify_password(user.password, db_user["password"]):
-        raise HTTPException(status_code=401, detail="Credenziali non valide")
+        raise HTTPException(status_code=401, detail="Email o password non corrette")
     
     # Create JWT token
     token_data = {
@@ -478,6 +478,7 @@ async def login(user: UserLogin):
             "biografia": db_user.get("biografia", ""),
             "profile_image": db_user.get("profile_image"),
             "needs_setup": db_user.get("needs_setup", False),
+            "needs_password_change": db_user.get("needs_password_change", False),
             "organization": db_user.get("organization")
         }
     }
