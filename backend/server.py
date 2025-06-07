@@ -87,6 +87,14 @@ class PasswordChange(BaseModel):
 class OrganizationUpdate(BaseModel):
     capo_promoter_id: Optional[str] = None
 
+class EventUpdate(BaseModel):
+    name: Optional[str] = None
+    lineup: Optional[List[str]] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    guests: Optional[List[str]] = None
+    event_poster: Optional[str] = None
+
 class UserSearch(BaseModel):
     search_term: Optional[str] = ""
     role_filter: Optional[str] = None
