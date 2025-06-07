@@ -1066,13 +1066,43 @@ function App() {
               weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
             })}</p>
             <p><span className="text-red-400">🕘 Orario:</span> {selectedEvent?.start_time}</p>
-            <p><span className="text-red-400">📍 Luogo:</span> {selectedEvent?.location}</p>
-            <p><span className="text-red-400">🏢 Organizzazione:</span> {selectedEvent?.organization}</p>
-            {selectedEvent?.lineup && (
-              <p><span className="text-red-400">🎵 Line-up:</span> {selectedEvent.lineup.join(', ')}</p>
+            {selectedEvent?.end_time && (
+              <p><span className="text-red-400">🕘 Fine:</span> {selectedEvent.end_time}</p>
             )}
-            {selectedEvent?.guests && (
-              <p><span className="text-red-400">⭐ Guest:</span> {selectedEvent.guests.join(', ')}</p>
+            <p><span className="text-red-400">📍 Luogo:</span> {selectedEvent?.location}</p>
+            {selectedEvent?.location_address && (
+              <p><span className="text-red-400">🗺️ Indirizzo:</span> {selectedEvent.location_address}</p>
+            )}
+            <p><span className="text-red-400">🏢 Organizzazione:</span> {selectedEvent?.organization}</p>
+            {selectedEvent?.lineup && selectedEvent.lineup.length > 0 && (
+              <div>
+                <span className="text-red-400">🎵 Line-up DJ:</span>
+                <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {selectedEvent.lineup.map((dj, index) => (
+                    <div key={index} className="bg-gray-800 rounded-lg px-3 py-2 border-l-4 border-red-500">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-red-400">🎧</span>
+                        <span className="text-white font-semibold">{dj}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {selectedEvent?.guests && selectedEvent.guests.length > 0 && (
+              <div>
+                <span className="text-red-400">⭐ Guest Speciali:</span>
+                <div className="mt-2 space-y-2">
+                  {selectedEvent.guests.map((guest, index) => (
+                    <div key={index} className="bg-gray-800 rounded-lg px-3 py-2 border-l-4 border-yellow-500">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-yellow-400">⭐</span>
+                        <span className="text-white font-semibold">{guest}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             )}
           </div>
           
