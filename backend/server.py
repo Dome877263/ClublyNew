@@ -1026,6 +1026,234 @@ async def update_event(event_id: str, event_update: dict, current_user = Depends
     
     return {"message": "Evento aggiornato con successo"}
 
+# Organization management APIs
+@app.put("/api/organizations/{org_id}/assign-capo-promoter")
+async def assign_capo_promoter_to_organization(org_id: str, update: OrganizationUpdate, current_user = Depends(verify_jwt_token)):
+    """Assign a capo promoter to an organization (only clubly_founder can do this)"""
+    if current_user["ruolo"] != "clubly_founder":
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Check if organization exists
+    org = db.organizations.find_one({"id": org_id})
+    if not org:
+        raise HTTPException(status_code=404, detail="Organizzazione non trovata")
+    
+    # If capo_promoter_id provided, validate it exists and is actually a capo_promoter
+    if update.capo_promoter_id:
+        capo_promoter = db.users.find_one({
+            "id": update.capo_promoter_id,
+            "ruolo": "capo_promoter"
+        })
+        if not capo_promoter:
+            raise HTTPException(status_code=400, detail="Capo promoter non trovato")
+        
+        # Update capo promoter's organization
+        db.users.update_one(
+            {"id": update.capo_promoter_id},
+            {"$set": {"organization": org["name"]}}
+        )
+    
+    # Update organization
+    result = db.organizations.update_one(
+        {"id": org_id},
+        {"$set": {"capo_promoter_id": update.capo_promoter_id, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Organizzazione non trovata")
+    
+    return {"message": "Capo promoter assegnato con successo"}
+
+@app.get("/api/organizations/available-capo-promoters")
+async def get_available_capo_promoters(current_user = Depends(verify_jwt_token)):
+    """Get list of capo promoters not yet assigned to organizations"""
+    if current_user["ruolo"] != "clubly_founder":
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Get capo promoters without organization or with organization but not yet assigned as capo
+    capo_promoters = list(db.users.find(
+        {
+            "ruolo": "capo_promoter",
+            "$or": [
+                {"organization": {"$exists": False}},
+                {"organization": None},
+                {"organization": ""}
+            ]
+        },
+        {"_id": 0, "password": 0}
+    ))
+    
+    return capo_promoters
+
+# Password change API
+@app.post("/api/user/change-password")
+async def change_password(password_data: PasswordChange, current_user = Depends(verify_jwt_token)):
+    """Change user password"""
+    user = db.users.find_one({"id": current_user["id"]})
+    if not user:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    
+    # Verify current password
+    if not verify_password(password_data.current_password, user["password"]):
+        raise HTTPException(status_code=400, detail="Password attuale non corretta")
+    
+    # Update password
+    result = db.users.update_one(
+        {"id": current_user["id"]},
+        {
+            "$set": {
+                "password": hash_password(password_data.new_password),
+                "needs_password_change": False,
+                "updated_at": datetime.utcnow()
+            }
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Utente non trovato")
+    
+    return {"message": "Password cambiata con successo"}
+
+# Event management enhancements for clubly founder
+@app.delete("/api/events/{event_id}")
+async def delete_event(event_id: str, current_user = Depends(verify_jwt_token)):
+    """Delete event (only clubly_founder can do this)"""
+    if current_user["ruolo"] != "clubly_founder":
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Check if event exists
+    event = db.events.find_one({"id": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    # Delete related bookings and chats first
+    bookings = list(db.bookings.find({"event_id": event_id}))
+    for booking in bookings:
+        db.chats.delete_many({"booking_id": booking["id"]})
+        db.chat_messages.delete_many({"chat_id": {"$in": [chat["id"] for chat in db.chats.find({"booking_id": booking["id"]})]}})
+    
+    db.bookings.delete_many({"event_id": event_id})
+    
+    # Delete event
+    result = db.events.delete_one({"id": event_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    return {"message": "Evento eliminato con successo"}
+
+@app.put("/api/events/{event_id}/poster")
+async def update_event_poster(event_id: str, poster_data: dict, current_user = Depends(verify_jwt_token)):
+    """Update event poster - clubly_founder can add, capo_promoter can modify"""
+    if current_user["ruolo"] not in ["clubly_founder", "capo_promoter"]:
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Check if event exists
+    event = db.events.find_one({"id": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    # If capo_promoter, check if event belongs to their organization
+    if current_user["ruolo"] == "capo_promoter":
+        user = db.users.find_one({"id": current_user["id"]})
+        if event["organization"] != user.get("organization"):
+            raise HTTPException(status_code=403, detail="Non autorizzato per questo evento")
+    
+    # Update poster
+    result = db.events.update_one(
+        {"id": event_id},
+        {
+            "$set": {
+                "event_poster": poster_data.get("event_poster"),
+                "updated_at": datetime.utcnow(),
+                "updated_by": current_user["id"]
+            }
+        }
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    return {"message": "Locandina evento aggiornata con successo"}
+
+# Enhanced event update for clubly founder
+@app.put("/api/events/{event_id}/full-update")
+async def full_update_event(event_id: str, event_update: EventUpdate, current_user = Depends(verify_jwt_token)):
+    """Full event update for clubly founder (can modify anything)"""
+    if current_user["ruolo"] != "clubly_founder":
+        raise HTTPException(status_code=403, detail="Non autorizzato")
+    
+    # Check if event exists
+    event = db.events.find_one({"id": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    # Prepare update data
+    update_data = {}
+    for field, value in event_update.dict(exclude_unset=True).items():
+        if value is not None:
+            update_data[field] = value
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="Nessun campo da aggiornare")
+    
+    update_data["updated_at"] = datetime.utcnow()
+    update_data["updated_by"] = current_user["id"]
+    
+    result = db.events.update_one(
+        {"id": event_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Evento non trovato")
+    
+    return {"message": "Evento aggiornato con successo"}
+
+# Notifications API
+@app.get("/api/user/notifications")
+async def get_user_notifications(current_user = Depends(verify_jwt_token)):
+    """Get user notifications count"""
+    user_role = current_user["ruolo"]
+    notification_count = 0
+    
+    if user_role in ["promoter", "capo_promoter"]:
+        # Count new messages in active chats
+        chats = db.chats.find({
+            "promoter_id": current_user["id"],
+            "status": "active"
+        })
+        
+        for chat in chats:
+            # Count unread messages (simplified - count messages from last 24 hours)
+            from datetime import timedelta
+            yesterday = datetime.utcnow() - timedelta(days=1)
+            unread_count = db.chat_messages.count_documents({
+                "chat_id": chat["id"],
+                "sender_id": {"$ne": current_user["id"]},
+                "timestamp": {"$gte": yesterday}
+            })
+            notification_count += unread_count
+    
+    elif user_role == "cliente":
+        # Count new messages in user's chats
+        chats = db.chats.find({
+            "client_id": current_user["id"],
+            "status": "active"
+        })
+        
+        for chat in chats:
+            from datetime import timedelta
+            yesterday = datetime.utcnow() - timedelta(days=1)
+            unread_count = db.chat_messages.count_documents({
+                "chat_id": chat["id"],
+                "sender_id": {"$ne": current_user["id"]},
+                "timestamp": {"$gte": yesterday}
+            })
+            notification_count += unread_count
+    
+    return {"notification_count": min(notification_count, 99)}  # Cap at 99
+
 # User profile viewing endpoints
 @app.get("/api/users/{user_id}/profile")
 async def get_user_profile(user_id: str, current_user = Depends(verify_jwt_token)):
