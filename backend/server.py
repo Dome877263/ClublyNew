@@ -71,7 +71,6 @@ class EventCreate(BaseModel):
 class OrganizationCreate(BaseModel):
     name: str
     location: str
-    capo_promoter_username: str
 
 class TemporaryCredentials(BaseModel):
     nome: str
