@@ -803,8 +803,7 @@ async def create_organization(org: OrganizationCreate, current_user = Depends(ve
         "id": str(uuid.uuid4()),
         "name": org.name,
         "location": org.location,
-        "capo_promoter_username": org.capo_promoter_username,
-        "capo_promoter_id": None,  # Will be set when capo promoter confirms
+        "capo_promoter_id": None,  # Will be set later when assigning
         "created_by": current_user["id"],
         "created_at": datetime.utcnow()
     }
