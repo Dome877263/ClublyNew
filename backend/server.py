@@ -544,22 +544,8 @@ async def create_booking(booking: Booking, current_user = Depends(verify_jwt_tok
     if not event:
         raise HTTPException(status_code=404, detail="Evento non trovato")
     
-    # Find available promoter - either selected by user or auto-assigned
-    promoter_id = None
-    if hasattr(booking, 'selected_promoter_id') and booking.selected_promoter_id:
-        # Verify the selected promoter exists and works for the organization
-        selected_promoter = db.users.find_one({
-            "id": booking.selected_promoter_id,
-            "organization": event["organization"],
-            "ruolo": {"$in": ["promoter", "capo_promoter"]}
-        })
-        if selected_promoter:
-            promoter_id = booking.selected_promoter_id
-        else:
-            raise HTTPException(status_code=400, detail="PR selezionato non valido per questa organizzazione")
-    else:
-        # Auto-assign promoter as before
-        promoter_id = assign_promoter_to_event(booking.event_id)
+    # Auto-assign promoter with least bookings (no manual selection)
+    promoter_id = assign_promoter_to_event(booking.event_id)
     
     if not promoter_id:
         raise HTTPException(status_code=503, detail="Nessun promoter disponibile al momento")
@@ -573,7 +559,7 @@ async def create_booking(booking: Booking, current_user = Depends(verify_jwt_tok
         "party_size": booking.party_size,
         "status": "pending",
         "promoter_id": promoter_id,
-        "selected_promoter": hasattr(booking, 'selected_promoter_id') and booking.selected_promoter_id is not None,
+        "auto_assigned": True,
         "created_at": datetime.utcnow()
     }
     
@@ -601,7 +587,7 @@ async def create_booking(booking: Booking, current_user = Depends(verify_jwt_tok
     initial_message = f"""🎉 Nuova prenotazione per {event['name']}
 
 👤 Cliente: {user['nome']} {user['cognome']} (@{user['username']})
-🎯 PR Assegnato: {promoter['nome']} {promoter['cognome']} (@{promoter['username']})
+🎯 PR Assegnato Automaticamente: {promoter['nome']} {promoter['cognome']} (@{promoter['username']})
 📅 Evento: {event['name']}
 📍 Luogo: {event['location']}
 ⏰ Data: {event['date']} alle {event['start_time']}
@@ -630,7 +616,7 @@ Ciao! Sono interessato/a a questa prenotazione. Puoi aiutarmi con i dettagli?"""
         )
     
     return {
-        "message": "Prenotazione creata con successo! Chat avviata con il promoter.",
+        "message": "Prenotazione creata con successo! Chat avviata con il promoter assegnato automaticamente.",
         "booking_id": booking_data["id"],
         "chat_id": chat_data["id"],
         "promoter_name": f"{promoter['nome']} {promoter['cognome']}"
