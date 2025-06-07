@@ -522,6 +522,10 @@ async def create_event(event: Event, current_user = Depends(verify_jwt_token)):
     if current_user["ruolo"] != "clubly_founder":
         raise HTTPException(status_code=403, detail="Non autorizzato")
     
+    # Validate event date and time
+    if not validate_event_datetime(event.date, event.start_time):
+        raise HTTPException(status_code=400, detail="Non puoi creare eventi con date o orari nel passato")
+    
     event_data = {
         "id": str(uuid.uuid4()),
         **event.dict(),
