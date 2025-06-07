@@ -10,7 +10,9 @@ import {
   CreateCapoPromoterModal,
   CreatePromoterModal,
   OrganizationDetailsModal,
-  EditProfileModal
+  EditProfileModal,
+  ChangePasswordModal,
+  EditOrganizationModal
 } from './Modals';
 
 function App() {
