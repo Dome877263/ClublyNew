@@ -860,17 +860,22 @@ async def create_temporary_credentials(creds: TemporaryCredentials, current_user
     if db.users.find_one({"email": creds.email}):
         raise HTTPException(status_code=400, detail="Email già esistente")
     
-    # Verify organization exists
-    if not db.organizations.find_one({"name": creds.organization}):
-        raise HTTPException(status_code=400, detail="Organizzazione non trovata")
+    # Handle organization assignment
+    organization = None
+    if creds.organization:
+        # Verify organization exists if provided
+        if not db.organizations.find_one({"name": creds.organization}):
+            raise HTTPException(status_code=400, detail="Organizzazione non trovata")
+        organization = creds.organization
     
-    # Set organization for promoters created by capo_promoter
-    organization = creds.organization
+    # For promoters created by capo_promoter, use capo_promoter's organization if not specified
     if current_user["ruolo"] == "capo_promoter":
-        # Get current user's organization and ensure they can only create for their org
         user = db.users.find_one({"id": current_user["id"]})
-        if user.get("organization") != creds.organization:
+        if creds.organization and user.get("organization") != creds.organization:
             raise HTTPException(status_code=403, detail="Puoi creare credenziali solo per la tua organizzazione")
+        # If no organization specified for promoter, use capo_promoter's organization
+        if creds.ruolo == "promoter" and not organization:
+            organization = user.get("organization")
     
     # Create temporary user
     user_data = {
@@ -883,7 +888,7 @@ async def create_temporary_credentials(creds: TemporaryCredentials, current_user
         "ruolo": creds.ruolo,
         "data_nascita": "",  # Will be set during setup
         "citta": "",  # Will be set during setup
-        "organization": organization,
+        "organization": organization,  # Can be None for capo_promoter
         "profile_image": None,
         "needs_setup": True,
         "needs_password_change": True,  # Must change password on first login
@@ -899,7 +904,7 @@ async def create_temporary_credentials(creds: TemporaryCredentials, current_user
         "user_id": user_data["id"],
         "email": creds.email,
         "temporary_password": creds.password,
-        "organization": organization
+        "organization": organization or "Da assegnare"
     }
 
 # Dashboard data endpoints
