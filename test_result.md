@@ -292,6 +292,54 @@ backend:
         agent: "testing"
         comment: "Test completato con successo. Verificato che l'API di login restituisce correttamente il campo needs_password_change. Testato con credenziali corrette e verificato che il flag viene impostato a false dopo il cambio password."
 
+  - task: "Event Poster Update API"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. Verificato che i capo promoter e clubly founder possono modificare eventi includendo il campo event_poster per l'upload della locandina. L'API PUT /api/events/{event_id}/poster funziona correttamente e il campo event_poster viene aggiornato nel database."
+
+  - task: "Automatic PR Assignment System"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. Verificato che le prenotazioni vengono assegnate automaticamente al promoter con meno prenotazioni quando selected_promoter_id è null, e che è possibile selezionare un promoter specifico tramite il campo selected_promoter_id. L'API POST /api/bookings funziona correttamente in entrambi i casi."
+
+  - task: "Event Date Validation"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. Verificato che non si possano creare eventi nel passato. L'API restituisce un errore 400 quando si tenta di creare un evento con una data nel passato."
+
+  - task: "Error Handling for Authentication"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. Verificato che vengono restituiti messaggi di errore appropriati per credenziali non corrette (401 Unauthorized). Testato sia con password errata che con utente inesistente."
+
 frontend:
   - task: "User Profile Viewing Modal"
     implemented: true
