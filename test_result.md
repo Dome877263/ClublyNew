@@ -647,6 +647,18 @@ backend:
         agent: "testing"
         comment: "Test completato con successo. L'API PUT /api/events/{event_id} permette al capo_promoter di modificare solo i campi consentiti (name, lineup, start_time) e impedisce la modifica di campi ristretti (location, date). Verificato anche che solo capo_promoter e clubly_founder possono modificare eventi, mentre i promoter normali ricevono un errore 403 Forbidden."
 
+  - task: "Creazione capo promoter con organizzazione opzionale"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. Verificato che l'API /api/users/temporary-credentials permette di creare un capo promoter senza specificare un'organizzazione (campo opzionale). Il campo organizzazione viene correttamente impostato come 'Da assegnare' nella risposta API. Verificato anche che funziona ancora normalmente quando si specifica un'organizzazione. Eseguiti test di regressione per login, booking e chat che confermano che le modifiche non hanno rotto altre funzionalità."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
