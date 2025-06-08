@@ -145,6 +145,222 @@ export const UserProfileModal = ({ show, onClose, userProfile, isOwnProfile, onE
   );
 };
 
+// User Search Modal
+export const UserSearchModal = ({ show, onClose, onViewProfile }) => {
+  const [searchData, setSearchData] = useState({
+    search_term: '',
+    role_filter: '',
+    creation_date_from: '',
+    creation_date_to: ''
+  });
+  const [searchResults, setSearchResults] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const backendUrl = process.env.REACT_APP_BACKEND_URL;
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setHasSearched(true);
+    
+    try {
+      const response = await fetch(`${backendUrl}/api/users/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(searchData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data);
+      } else {
+        console.error('Search failed');
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error searching users:', error);
+      setSearchResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getRoleIcon = (role) => {
+    switch(role) {
+      case 'clubly_founder': return '👑';
+      case 'capo_promoter': return '🎯';
+      case 'promoter': return '🎪';
+      case 'cliente': return '🎉';
+      default: return '👤';
+    }
+  };
+
+  const getRoleName = (role) => {
+    switch(role) {
+      case 'clubly_founder': return 'Clubly Founder';
+      case 'capo_promoter': return 'Capo Promoter';
+      case 'promoter': return 'Promoter';
+      case 'cliente': return 'Cliente';
+      default: return 'Utente';
+    }
+  };
+
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  if (!show) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-gray-900 border border-purple-600 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">🔍 Ricerca Utenti Clubly</h2>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-purple-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Search Form */}
+          <form onSubmit={handleSearch} className="space-y-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="text-purple-400 font-bold block mb-2">🔍 Ricerca per Nome</label>
+                <input
+                  type="text"
+                  placeholder="Cerca per nome..."
+                  value={searchData.search_term}
+                  onChange={(e) => setSearchData({...searchData, search_term: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-purple-400 font-bold block mb-2">👤 Filtro per Ruolo</label>
+                <select
+                  value={searchData.role_filter}
+                  onChange={(e) => setSearchData({...searchData, role_filter: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                >
+                  <option value="">Tutti i ruoli</option>
+                  <option value="clubly_founder">👑 Clubly Founder</option>
+                  <option value="capo_promoter">🎯 Capo Promoter</option>
+                  <option value="promoter">🎪 Promoter</option>
+                  <option value="cliente">🎉 Cliente</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-purple-400 font-bold block mb-2">📅 Data Creazione (Da)</label>
+                <input
+                  type="date"
+                  value={searchData.creation_date_from}
+                  onChange={(e) => setSearchData({...searchData, creation_date_from: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-purple-400 font-bold block mb-2">📅 Data Creazione (A)</label>
+                <input
+                  type="date"
+                  value={searchData.creation_date_to}
+                  onChange={(e) => setSearchData({...searchData, creation_date_to: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 outline-none transition-all"
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg disabled:opacity-50"
+            >
+              {isLoading ? '🔍 Ricerca in corso...' : '🔍 Cerca Utenti'}
+            </button>
+          </form>
+
+          {/* Search Results */}
+          {hasSearched && (
+            <div>
+              <h3 className="text-white text-lg font-bold mb-4">
+                📋 Risultati ({searchResults.length} utenti trovati)
+              </h3>
+              
+              {searchResults.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {searchResults.map(user => (
+                    <div key={user.id} className="bg-gray-800 rounded-lg p-4 hover:bg-gray-700 transition-colors">
+                      <div className="flex items-center space-x-3">
+                        {user.profile_image ? (
+                          <img 
+                            src={user.profile_image} 
+                            alt={user.nome}
+                            className="w-12 h-12 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold">
+                              {user.nome?.charAt(0)?.toUpperCase() || '?'}
+                            </span>
+                          </div>
+                        )}
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-white font-bold">{user.nome} {user.cognome}</h4>
+                            <span className="text-purple-400 text-sm">@{user.username}</span>
+                          </div>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span>{getRoleIcon(user.ruolo)}</span>
+                            <span className="text-gray-400 text-sm">{getRoleName(user.ruolo)}</span>
+                          </div>
+                          {user.biografia && (
+                            <p className="text-gray-400 text-xs mt-1 truncate">{user.biografia}</p>
+                          )}
+                          <button
+                            onClick={() => onViewProfile(user.id)}
+                            className="mt-2 text-purple-400 hover:text-purple-300 text-sm font-medium transition-colors"
+                          >
+                            👁️ Visualizza Profilo
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-400 text-lg">😔 Nessun utente trovato</p>
+                  <p className="text-gray-500 text-sm mt-2">Prova a modificare i filtri di ricerca</p>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Change Password Modal
 export const ChangePasswordModal = ({ show, onClose, onSubmit }) => {
   const [passwordData, setPasswordData] = useState({
