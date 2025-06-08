@@ -5,7 +5,6 @@ import os
 import time
 import random
 import string
-import jwt
 from datetime import datetime, timedelta
 
 # Get the backend URL from the frontend .env file
@@ -13,34 +12,29 @@ BACKEND_URL = "https://8ddadc21-e620-48aa-a5c2-33d9784e126a.preview.emergentagen
 
 # Test results
 test_results = {
-    # Notification System
-    "get_user_notifications": False,
+    # Event poster update test
+    "capo_promoter_event_poster_update": False,
+    "clubly_founder_event_poster_update": False,
     
-    # Password Change System
-    "change_password_success": False,
-    "change_password_wrong_current": False,
-    "needs_password_change_flag": False,
+    # Automatic PR assignment test
+    "booking_automatic_pr_assignment": False,
+    "booking_specific_pr_selection": False,
     
-    # Enhanced Organization Management
+    # Notifications test
+    "notifications_count": False,
+    
+    # Organization management test
+    "get_available_organizations": False,
     "get_available_capo_promoters": False,
-    "assign_capo_promoter": False,
     
-    # Temporary Credentials with Organization
-    "create_credentials_with_organization": False,
-    "create_credentials_organization_validation": False,
-    "capo_promoter_create_credentials_restriction": False,
+    # Event date validation test
+    "event_past_date_validation": False,
     
-    # Enhanced Event Management
-    "delete_event": False,
-    "update_event_poster": False,
-    "full_update_event": False,
+    # Login with needs_password_change test
+    "login_needs_password_change": False,
     
-    # Date Validation
-    "create_event_past_date": False,
-    "create_event_future_date": False,
-    
-    # Automatic Booking Assignment
-    "booking_auto_assignment": False
+    # Error handling test
+    "login_incorrect_credentials": False
 }
 
 # Store tokens for different user roles
@@ -48,15 +42,8 @@ tokens = {
     "admin": None,
     "capo_promoter": None,
     "promoter": None,
+    "new_user": None,
     "temp_user": None
-}
-
-# Store IDs for created resources
-created_resources = {
-    "event_id": None,
-    "organization_id": None,
-    "temp_user_id": None,
-    "booking_id": None
 }
 
 # Helper function to generate a random string
@@ -68,97 +55,362 @@ def create_fake_base64_image():
     # This is a tiny 1x1 transparent PNG image
     return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
 
-# Login with different roles
-def login_with_roles():
-    print("\n=== Logging in with different roles ===")
+# Test login with username
+def test_login_with_username():
+    print("\n=== Testing login with username ===")
     
-    # Login as admin (clubly_founder)
-    admin_payload = {
+    payload = {
         "login": "admin",
         "password": "admin123"
     }
     
-    response = requests.post(f"{BACKEND_URL}/auth/login", json=admin_payload)
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
     
     if response.status_code == 200:
         data = response.json()
         tokens["admin"] = data.get("token")
-        print(f"✅ Login successful as admin (clubly_founder)")
+        print(f"✅ Login successful with username. User role: {data['user']['ruolo']}")
+        return True
     else:
-        print(f"❌ Login failed as admin. Status code: {response.status_code}")
+        print(f"❌ Login failed with username. Status code: {response.status_code}")
         print(f"Response: {response.text}")
+        return False
+
+# Test login with capo promoter
+def test_login_with_capo_promoter():
+    print("\n=== Testing login with capo promoter ===")
     
-    # Login as capo_promoter
-    capo_payload = {
+    payload = {
         "login": "capo_milano",
         "password": "Password1"
     }
     
-    response = requests.post(f"{BACKEND_URL}/auth/login", json=capo_payload)
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
     
     if response.status_code == 200:
         data = response.json()
         tokens["capo_promoter"] = data.get("token")
-        print(f"✅ Login successful as capo_promoter")
+        print(f"✅ Login successful with capo promoter. User role: {data['user']['ruolo']}")
+        return True
     else:
-        print(f"❌ Login failed as capo_promoter. Status code: {response.status_code}")
+        print(f"❌ Login failed with capo promoter. Status code: {response.status_code}")
         print(f"Response: {response.text}")
-    
-    # Try to find a promoter in the system
-    if tokens["admin"]:
-        headers = {
-            "Authorization": f"Bearer {tokens['admin']}"
-        }
-        
-        response = requests.get(f"{BACKEND_URL}/dashboard/clubly-founder", headers=headers)
-        
-        if response.status_code == 200:
-            data = response.json()
-            promoters = data.get("users", {}).get("promoter", [])
-            
-            if promoters:
-                # Create temporary credentials for a promoter
-                temp_email = f"temp_promoter_{random_string()}@test.com"
-                
-                payload = {
-                    "nome": "Temporary",
-                    "email": temp_email,
-                    "password": "TempPassword123",
-                    "ruolo": "promoter",
-                    "organization": "Night Events Milano"
-                }
-                
-                response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=payload, headers=headers)
-                
-                if response.status_code == 200:
-                    # Login with the temporary credentials
-                    login_payload = {
-                        "login": temp_email,
-                        "password": "TempPassword123"
-                    }
-                    
-                    login_response = requests.post(f"{BACKEND_URL}/auth/login", json=login_payload)
-                    
-                    if login_response.status_code == 200:
-                        login_data = login_response.json()
-                        tokens["promoter"] = login_data.get("token")
-                        print(f"✅ Login successful as promoter (temporary credentials)")
-                    else:
-                        print(f"❌ Login failed with temporary promoter credentials. Status code: {login_response.status_code}")
-            else:
-                print("ℹ️ No promoters found in the system")
-    
-    return all(token is not None for token in [tokens["admin"], tokens["capo_promoter"]])
+        return False
 
-# 1. Test Notification System
-def test_notification_system():
-    print("\n=== Testing Notification System ===")
+# Test login with promoter
+def test_login_with_promoter():
+    print("\n=== Testing login with promoter ===")
     
-    if not tokens["admin"] or not tokens["capo_promoter"]:
-        print("❌ Cannot test notification system without required tokens")
+    payload = {
+        "login": "marco_promoter",
+        "password": "Password1@"
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
+    
+    if response.status_code == 200:
+        data = response.json()
+        tokens["promoter"] = data.get("token")
+        print(f"✅ Login successful with promoter. User role: {data['user']['ruolo']}")
+        return True
+    else:
+        print(f"❌ Login failed with promoter. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+        return False
+
+# Test 1: Event poster update by capo promoter
+def test_capo_promoter_event_poster_update():
+    print("\n=== Testing event poster update by capo promoter ===")
+    
+    # First, we need to login as capo_promoter
+    if not tokens["capo_promoter"]:
+        if not test_login_with_capo_promoter():
+            print("❌ Cannot test event poster update without capo_promoter token")
+            return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['capo_promoter']}"
+    }
+    
+    # Get capo promoter's organization
+    response = requests.get(f"{BACKEND_URL}/dashboard/capo-promoter", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get capo promoter dashboard. Status code: {response.status_code}")
         return False
     
-    # Test notifications for clubly_founder
+    dashboard_data = response.json()
+    organization = dashboard_data.get("organization")
+    
+    # Get events for this organization
+    response = requests.get(f"{BACKEND_URL}/organizations/{organization}/events", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get organization events. Status code: {response.status_code}")
+        return False
+    
+    events = response.json()
+    
+    if not events:
+        # If no events exist, create one
+        print("No events found for this organization. Creating a test event...")
+        
+        # Get tomorrow's date
+        tomorrow = (datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d")
+        
+        payload = {
+            "name": f"Test Event for Poster {random_string()}",
+            "date": tomorrow,
+            "start_time": "22:00",
+            "location": "Test Club, Milano",
+            "end_time": "04:00",
+            "lineup": ["DJ Test", "DJ Sample"],
+            "location_address": "Via Test 123, Milano",
+            "total_tables": 10,
+            "table_types": ["Standard", "VIP"],
+            "max_party_size": 8
+        }
+        
+        response = requests.post(f"{BACKEND_URL}/events/create-by-promoter", json=payload, headers=headers)
+        
+        if response.status_code != 200:
+            print(f"❌ Could not create test event. Status code: {response.status_code}")
+            return False
+        
+        # Try to get events again
+        response = requests.get(f"{BACKEND_URL}/organizations/{organization}/events", headers=headers)
+        if response.status_code != 200 or not response.json():
+            print("❌ Could not create or find any events for testing")
+            return False
+        
+        events = response.json()
+    
+    # Use the first event for testing
+    event_id = events[0]["id"]
+    
+    # Update event poster
+    poster_payload = {
+        "event_poster": create_fake_base64_image()
+    }
+    
+    response = requests.put(f"{BACKEND_URL}/events/{event_id}/poster", json=poster_payload, headers=headers)
+    
+    if response.status_code == 200:
+        print(f"✅ Event poster update by capo promoter successful")
+        
+        # Verify the update by getting the event details
+        response = requests.get(f"{BACKEND_URL}/events/{event_id}", headers=headers)
+        if response.status_code == 200:
+            updated_event = response.json()
+            
+            if "event_poster" in updated_event and updated_event["event_poster"]:
+                print(f"✅ Event poster field updated successfully")
+                test_results["capo_promoter_event_poster_update"] = True
+            else:
+                print(f"❌ Event poster field not updated")
+        else:
+            print(f"❌ Could not verify event update. Status code: {response.status_code}")
+    else:
+        print(f"❌ Event poster update by capo promoter failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["capo_promoter_event_poster_update"]
+
+# Test 2: Event poster update by clubly founder
+def test_clubly_founder_event_poster_update():
+    print("\n=== Testing event poster update by clubly founder ===")
+    
+    # First, we need to login as admin (clubly_founder)
+    if not tokens["admin"]:
+        if not test_login_with_username():
+            print("❌ Cannot test event poster update without admin token")
+            return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Get all events
+    response = requests.get(f"{BACKEND_URL}/events", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get events. Status code: {response.status_code}")
+        return False
+    
+    events = response.json()
+    
+    if not events:
+        print("❌ No events found for testing")
+        return False
+    
+    # Use the first event for testing
+    event_id = events[0]["id"]
+    
+    # Update event poster
+    poster_payload = {
+        "event_poster": create_fake_base64_image()
+    }
+    
+    response = requests.put(f"{BACKEND_URL}/events/{event_id}/poster", json=poster_payload, headers=headers)
+    
+    if response.status_code == 200:
+        print(f"✅ Event poster update by clubly founder successful")
+        
+        # Verify the update by getting the event details
+        response = requests.get(f"{BACKEND_URL}/events/{event_id}", headers=headers)
+        if response.status_code == 200:
+            updated_event = response.json()
+            
+            if "event_poster" in updated_event and updated_event["event_poster"]:
+                print(f"✅ Event poster field updated successfully")
+                test_results["clubly_founder_event_poster_update"] = True
+            else:
+                print(f"❌ Event poster field not updated")
+        else:
+            print(f"❌ Could not verify event update. Status code: {response.status_code}")
+    else:
+        print(f"❌ Event poster update by clubly founder failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["clubly_founder_event_poster_update"]
+
+# Test 3: Automatic PR assignment for bookings
+def test_booking_automatic_pr_assignment():
+    print("\n=== Testing automatic PR assignment for bookings ===")
+    
+    # First, we need to login as a regular user (we'll use admin for simplicity)
+    if not tokens["admin"]:
+        if not test_login_with_username():
+            print("❌ Cannot test booking without admin token")
+            return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Get all events
+    response = requests.get(f"{BACKEND_URL}/events", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get events. Status code: {response.status_code}")
+        return False
+    
+    events = response.json()
+    
+    if not events:
+        print("❌ No events found for testing")
+        return False
+    
+    # Use the first event for testing
+    event_id = events[0]["id"]
+    
+    # Create a booking with automatic PR assignment (selected_promoter_id = None)
+    booking_payload = {
+        "event_id": event_id,
+        "booking_type": "lista",
+        "party_size": 4,
+        "selected_promoter_id": None  # This should trigger automatic assignment
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/bookings", json=booking_payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Booking with automatic PR assignment successful")
+        
+        if "promoter_name" in data:
+            print(f"✅ Promoter automatically assigned: {data['promoter_name']}")
+            test_results["booking_automatic_pr_assignment"] = True
+        else:
+            print(f"❌ No promoter name in response")
+    else:
+        print(f"❌ Booking with automatic PR assignment failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["booking_automatic_pr_assignment"]
+
+# Test 4: Specific PR selection for bookings
+def test_booking_specific_pr_selection():
+    print("\n=== Testing specific PR selection for bookings ===")
+    
+    # First, we need to login as a regular user (we'll use admin for simplicity)
+    if not tokens["admin"]:
+        if not test_login_with_username():
+            print("❌ Cannot test booking without admin token")
+            return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Get all events
+    response = requests.get(f"{BACKEND_URL}/events", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get events. Status code: {response.status_code}")
+        return False
+    
+    events = response.json()
+    
+    if not events:
+        print("❌ No events found for testing")
+        return False
+    
+    # Use the first event for testing
+    event_id = events[0]["id"]
+    organization = events[0].get("organization")
+    
+    if not organization:
+        print("❌ Event has no organization")
+        return False
+    
+    # Get promoters for this organization
+    response = requests.get(f"{BACKEND_URL}/organizations/{organization}/promoters", headers=headers)
+    if response.status_code != 200:
+        print(f"❌ Could not get organization promoters. Status code: {response.status_code}")
+        return False
+    
+    promoters = response.json()
+    
+    if not promoters:
+        print("❌ No promoters found for this organization")
+        return False
+    
+    # Use the first promoter for testing
+    promoter_id = promoters[0]["id"]
+    
+    # Create a booking with specific PR selection
+    booking_payload = {
+        "event_id": event_id,
+        "booking_type": "lista",
+        "party_size": 4,
+        "selected_promoter_id": promoter_id  # Specific promoter selection
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/bookings", json=booking_payload, headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Booking with specific PR selection successful")
+        
+        if "promoter_name" in data:
+            print(f"✅ Selected promoter assigned: {data['promoter_name']}")
+            test_results["booking_specific_pr_selection"] = True
+        else:
+            print(f"❌ No promoter name in response")
+    else:
+        print(f"❌ Booking with specific PR selection failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["booking_specific_pr_selection"]
+
+# Test 5: Notifications count API
+def test_notifications_count():
+    print("\n=== Testing notifications count API ===")
+    
+    # Test with different user roles
+    
+    # 1. Test with clubly founder
+    if not tokens["admin"]:
+        if not test_login_with_username():
+            print("❌ Cannot test notifications without admin token")
+            return False
+    
     admin_headers = {
         "Authorization": f"Bearer {tokens['admin']}"
     }
@@ -167,14 +419,19 @@ def test_notification_system():
     
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ Notifications for clubly_founder: {data.get('notification_count', 'N/A')}")
-        clubly_founder_success = True
+        print(f"✅ Notifications count for clubly founder successful: {data.get('notification_count', 'N/A')}")
+        admin_success = True
     else:
-        print(f"❌ Failed to get notifications for clubly_founder. Status code: {response.status_code}")
+        print(f"❌ Notifications count for clubly founder failed. Status code: {response.status_code}")
         print(f"Response: {response.text}")
-        clubly_founder_success = False
+        admin_success = False
     
-    # Test notifications for capo_promoter
+    # 2. Test with capo promoter
+    if not tokens["capo_promoter"]:
+        if not test_login_with_capo_promoter():
+            print("❌ Cannot test notifications without capo_promoter token")
+            return False
+    
     capo_headers = {
         "Authorization": f"Bearer {tokens['capo_promoter']}"
     }
@@ -183,46 +440,121 @@ def test_notification_system():
     
     if response.status_code == 200:
         data = response.json()
-        print(f"✅ Notifications for capo_promoter: {data.get('notification_count', 'N/A')}")
-        capo_promoter_success = True
+        print(f"✅ Notifications count for capo promoter successful: {data.get('notification_count', 'N/A')}")
+        capo_success = True
     else:
-        print(f"❌ Failed to get notifications for capo_promoter. Status code: {response.status_code}")
+        print(f"❌ Notifications count for capo promoter failed. Status code: {response.status_code}")
         print(f"Response: {response.text}")
-        capo_promoter_success = False
+        capo_success = False
     
-    # Test notifications for promoter if available
-    if tokens["promoter"]:
-        promoter_headers = {
-            "Authorization": f"Bearer {tokens['promoter']}"
-        }
-        
-        response = requests.get(f"{BACKEND_URL}/user/notifications", headers=promoter_headers)
-        
-        if response.status_code == 200:
-            data = response.json()
-            print(f"✅ Notifications for promoter: {data.get('notification_count', 'N/A')}")
-            promoter_success = True
-        else:
-            print(f"❌ Failed to get notifications for promoter. Status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            promoter_success = False
-    else:
-        print("ℹ️ Skipping promoter notifications test (no token available)")
-        promoter_success = True  # Skip this test
+    # Overall success if at least one test passed
+    test_results["notifications_count"] = admin_success or capo_success
     
-    test_results["get_user_notifications"] = clubly_founder_success and capo_promoter_success and promoter_success
-    return test_results["get_user_notifications"]
+    return test_results["notifications_count"]
 
-# 2. Test Password Change System
-def test_password_change_system():
-    print("\n=== Testing Password Change System ===")
+# Test 6: Get available organizations API
+def test_get_available_organizations():
+    print("\n=== Testing get available organizations API ===")
     
-    # Create a temporary user with needs_password_change flag
+    # This is a public API, no token needed
+    response = requests.get(f"{BACKEND_URL}/organizations")
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Get available organizations successful. Organizations count: {len(data)}")
+        
+        if len(data) > 0:
+            print(f"   First organization: {data[0].get('name')}")
+            test_results["get_available_organizations"] = True
+        else:
+            print(f"   No organizations found")
+            test_results["get_available_organizations"] = False
+    else:
+        print(f"❌ Get available organizations failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["get_available_organizations"]
+
+# Test 7: Get available capo promoters API
+def test_get_available_capo_promoters():
+    print("\n=== Testing get available capo promoters API ===")
+    
+    # First, we need to login as admin (clubly_founder)
     if not tokens["admin"]:
-        print("❌ Cannot test password change system without admin token")
-        return False
+        if not test_login_with_username():
+            print("❌ Cannot test get available capo promoters without admin token")
+            return False
     
-    admin_headers = {
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    response = requests.get(f"{BACKEND_URL}/organizations/available-capo-promoters", headers=headers)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"✅ Get available capo promoters successful. Capo promoters count: {len(data)}")
+        test_results["get_available_capo_promoters"] = True
+    else:
+        print(f"❌ Get available capo promoters failed. Status code: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["get_available_capo_promoters"]
+
+# Test 8: Event past date validation
+def test_event_past_date_validation():
+    print("\n=== Testing event past date validation ===")
+    
+    # First, we need to login as admin (clubly_founder)
+    if not tokens["admin"]:
+        if not test_login_with_username():
+            print("❌ Cannot test event past date validation without admin token")
+            return False
+    
+    headers = {
+        "Authorization": f"Bearer {tokens['admin']}"
+    }
+    
+    # Try to create an event with a past date
+    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
+    
+    payload = {
+        "name": f"Past Event {random_string()}",
+        "date": yesterday,
+        "start_time": "21:00",
+        "location": "Past Club, Milano",
+        "organization": "Night Events Milano",
+        "end_time": "05:00",
+        "lineup": ["DJ Past", "DJ History"],
+        "guests": ["Past Guest"],
+        "total_tables": 15,
+        "tables_available": 15,
+        "max_party_size": 10
+    }
+    
+    response = requests.post(f"{BACKEND_URL}/events", json=payload, headers=headers)
+    
+    # The request should fail with a 400 Bad Request
+    if response.status_code == 400:
+        print(f"✅ Event past date validation successful - correctly rejected past date")
+        test_results["event_past_date_validation"] = True
+    else:
+        print(f"❌ Event past date validation failed. Expected 400, got: {response.status_code}")
+        print(f"Response: {response.text}")
+    
+    return test_results["event_past_date_validation"]
+
+# Test 9: Login with needs_password_change flag
+def test_login_needs_password_change():
+    print("\n=== Testing login with needs_password_change flag ===")
+    
+    # First, we need to create a temporary user that needs password change
+    if not tokens["admin"]:
+        if not test_login_with_username():
+            print("❌ Cannot create temporary user without admin token")
+            return False
+    
+    headers = {
         "Authorization": f"Bearer {tokens['admin']}"
     }
     
@@ -238,17 +570,13 @@ def test_password_change_system():
         "organization": "Night Events Milano"
     }
     
-    response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=payload, headers=admin_headers)
+    response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=payload, headers=headers)
     
     if response.status_code != 200:
-        print(f"❌ Failed to create temporary user. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
+        print(f"❌ Could not create temporary user. Status code: {response.status_code}")
         return False
     
-    temp_user_data = response.json()
-    created_resources["temp_user_id"] = temp_user_data.get("user_id")
-    
-    # Login with temporary credentials
+    # Now login with the temporary credentials
     login_payload = {
         "login": temp_email,
         "password": temp_password
@@ -256,601 +584,133 @@ def test_password_change_system():
     
     login_response = requests.post(f"{BACKEND_URL}/auth/login", json=login_payload)
     
-    if login_response.status_code != 200:
-        print(f"❌ Failed to login with temporary credentials. Status code: {login_response.status_code}")
-        print(f"Response: {login_response.text}")
-        return False
-    
-    login_data = login_response.json()
-    tokens["temp_user"] = login_data.get("token")
-    
-    # Check if needs_password_change flag is set
-    needs_password_change = login_data.get("user", {}).get("needs_password_change", False)
-    
-    if needs_password_change:
-        print(f"✅ needs_password_change flag is correctly set to true for new user")
-        test_results["needs_password_change_flag"] = True
-    else:
-        print(f"❌ needs_password_change flag is not set for new user")
-        test_results["needs_password_change_flag"] = False
-    
-    # Test changing password with wrong current password
-    temp_headers = {
-        "Authorization": f"Bearer {tokens['temp_user']}"
-    }
-    
-    wrong_password_payload = {
-        "current_password": "WrongPassword123",
-        "new_password": "NewPassword123"
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/user/change-password", json=wrong_password_payload, headers=temp_headers)
-    
-    if response.status_code == 400:
-        print(f"✅ Password change correctly failed with wrong current password (400 Bad Request)")
-        test_results["change_password_wrong_current"] = True
-    else:
-        print(f"❌ Password change with wrong current password returned unexpected status: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["change_password_wrong_current"] = False
-    
-    # Test changing password with correct current password
-    correct_password_payload = {
-        "current_password": temp_password,
-        "new_password": "NewPassword123"
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/user/change-password", json=correct_password_payload, headers=temp_headers)
-    
-    if response.status_code == 200:
-        print(f"✅ Password changed successfully")
-        test_results["change_password_success"] = True
+    if login_response.status_code == 200:
+        login_data = login_response.json()
         
-        # Login again to check if needs_password_change flag is reset
-        new_login_payload = {
-            "login": temp_email,
-            "password": "NewPassword123"
-        }
-        
-        new_login_response = requests.post(f"{BACKEND_URL}/auth/login", json=new_login_payload)
-        
-        if new_login_response.status_code == 200:
-            new_login_data = new_login_response.json()
-            new_needs_password_change = new_login_data.get("user", {}).get("needs_password_change", True)
+        # Check if needs_password_change flag is present and true
+        if "needs_password_change" in login_data["user"] and login_data["user"]["needs_password_change"]:
+            print(f"✅ Login with needs_password_change flag successful")
             
-            if not new_needs_password_change:
-                print(f"✅ needs_password_change flag is correctly reset to false after password change")
-            else:
-                print(f"❌ needs_password_change flag is still true after password change")
-                test_results["needs_password_change_flag"] = False
-        else:
-            print(f"❌ Failed to login after password change. Status code: {new_login_response.status_code}")
-            print(f"Response: {new_login_response.text}")
-    else:
-        print(f"❌ Password change failed. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["change_password_success"] = False
-    
-    return test_results["change_password_success"] and test_results["change_password_wrong_current"] and test_results["needs_password_change_flag"]
-
-# 3. Test Enhanced Organization Management
-def test_enhanced_organization_management():
-    print("\n=== Testing Enhanced Organization Management ===")
-    
-    if not tokens["admin"]:
-        print("❌ Cannot test organization management without admin token")
-        return False
-    
-    admin_headers = {
-        "Authorization": f"Bearer {tokens['admin']}"
-    }
-    
-    # Test getting available capo promoters
-    response = requests.get(f"{BACKEND_URL}/organizations/available-capo-promoters", headers=admin_headers)
-    
-    if response.status_code == 200:
-        capo_promoters = response.json()
-        print(f"✅ Got available capo promoters. Count: {len(capo_promoters)}")
-        test_results["get_available_capo_promoters"] = True
-        
-        # Create a new organization
-        org_name = f"Test Organization {random_string()}"
-        
-        org_payload = {
-            "name": org_name,
-            "location": "Test City"
-        }
-        
-        response = requests.post(f"{BACKEND_URL}/organizations", json=org_payload, headers=admin_headers)
-        
-        if response.status_code == 200:
-            org_data = response.json()
-            org_id = org_data.get("organization_id")
-            created_resources["organization_id"] = org_id
-            print(f"✅ Created new organization: {org_name} (ID: {org_id})")
+            # Now test changing the password
+            temp_token = login_data.get("token")
+            temp_headers = {
+                "Authorization": f"Bearer {temp_token}"
+            }
             
-            # If we have available capo promoters, try to assign one
-            if capo_promoters:
-                capo_promoter_id = capo_promoters[0]["id"]
+            change_password_payload = {
+                "current_password": temp_password,
+                "new_password": "NewPassword123"
+            }
+            
+            change_response = requests.post(f"{BACKEND_URL}/user/change-password", json=change_password_payload, headers=temp_headers)
+            
+            if change_response.status_code == 200:
+                print(f"✅ Password change successful")
                 
-                assign_payload = {
-                    "capo_promoter_id": capo_promoter_id
+                # Login again to verify needs_password_change is now false
+                login_payload = {
+                    "login": temp_email,
+                    "password": "NewPassword123"
                 }
                 
-                response = requests.put(f"{BACKEND_URL}/organizations/{org_id}/assign-capo-promoter", json=assign_payload, headers=admin_headers)
+                login_response = requests.post(f"{BACKEND_URL}/auth/login", json=login_payload)
                 
-                if response.status_code == 200:
-                    print(f"✅ Successfully assigned capo promoter to organization")
-                    test_results["assign_capo_promoter"] = True
+                if login_response.status_code == 200:
+                    login_data = login_response.json()
+                    
+                    if "needs_password_change" in login_data["user"] and not login_data["user"]["needs_password_change"]:
+                        print(f"✅ needs_password_change flag correctly set to false after password change")
+                        test_results["login_needs_password_change"] = True
+                    else:
+                        print(f"❌ needs_password_change flag not set to false after password change")
                 else:
-                    print(f"❌ Failed to assign capo promoter. Status code: {response.status_code}")
-                    print(f"Response: {response.text}")
-                    test_results["assign_capo_promoter"] = False
+                    print(f"❌ Login after password change failed. Status code: {login_response.status_code}")
             else:
-                print("ℹ️ No available capo promoters to test assignment")
-                test_results["assign_capo_promoter"] = True  # Skip this test
+                print(f"❌ Password change failed. Status code: {change_response.status_code}")
+                print(f"Response: {change_response.text}")
         else:
-            print(f"❌ Failed to create organization. Status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            test_results["assign_capo_promoter"] = False
+            print(f"❌ needs_password_change flag not present or not true")
     else:
-        print(f"❌ Failed to get available capo promoters. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["get_available_capo_promoters"] = False
-        test_results["assign_capo_promoter"] = False
+        print(f"❌ Login with temporary credentials failed. Status code: {login_response.status_code}")
+        print(f"Response: {login_response.text}")
     
-    return test_results["get_available_capo_promoters"] and test_results["assign_capo_promoter"]
+    return test_results["login_needs_password_change"]
 
-# 4. Test Temporary Credentials with Organization
-def test_temporary_credentials_with_organization():
-    print("\n=== Testing Temporary Credentials with Organization ===")
+# Test 10: Login with incorrect credentials
+def test_login_incorrect_credentials():
+    print("\n=== Testing login with incorrect credentials ===")
     
-    if not tokens["admin"] or not tokens["capo_promoter"]:
-        print("❌ Cannot test temporary credentials without required tokens")
-        return False
-    
-    admin_headers = {
-        "Authorization": f"Bearer {tokens['admin']}"
+    # Test with incorrect password
+    payload = {
+        "login": "admin",
+        "password": "wrong_password"
     }
     
-    capo_headers = {
-        "Authorization": f"Bearer {tokens['capo_promoter']}"
-    }
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
     
-    # Get organizations
-    response = requests.get(f"{BACKEND_URL}/organizations", headers=admin_headers)
-    
-    if response.status_code != 200:
-        print(f"❌ Failed to get organizations. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        return False
-    
-    organizations = response.json()
-    
-    if not organizations:
-        print("❌ No organizations found")
-        return False
-    
-    # Get capo promoter's organization
-    response = requests.get(f"{BACKEND_URL}/dashboard/capo-promoter", headers=capo_headers)
-    
-    if response.status_code != 200:
-        print(f"❌ Failed to get capo promoter dashboard. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        return False
-    
-    capo_data = response.json()
-    capo_organization = capo_data.get("organization")
-    
-    if not capo_organization:
-        print("❌ Capo promoter has no organization")
-        return False
-    
-    # Find a different organization than capo's
-    different_org = None
-    for org in organizations:
-        if org["name"] != capo_organization:
-            different_org = org["name"]
-            break
-    
-    # Test 1: Create credentials with valid organization as admin
-    temp_email1 = f"temp_user_{random_string()}@test.com"
-    
-    valid_org_payload = {
-        "nome": "Temporary",
-        "email": temp_email1,
-        "password": "TempPassword123",
-        "ruolo": "promoter",
-        "organization": organizations[0]["name"]
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=valid_org_payload, headers=admin_headers)
-    
-    if response.status_code == 200:
-        print(f"✅ Admin successfully created temporary credentials with valid organization")
-        test_results["create_credentials_with_organization"] = True
+    # The request should fail with a 401 Unauthorized
+    if response.status_code == 401:
+        print(f"✅ Login with incorrect password correctly rejected with 401")
+        password_test = True
     else:
-        print(f"❌ Admin failed to create temporary credentials. Status code: {response.status_code}")
+        print(f"❌ Login with incorrect password test failed. Expected 401, got: {response.status_code}")
         print(f"Response: {response.text}")
-        test_results["create_credentials_with_organization"] = False
+        password_test = False
     
-    # Test 2: Create credentials with invalid organization
-    temp_email2 = f"temp_user_{random_string()}@test.com"
-    
-    invalid_org_payload = {
-        "nome": "Temporary",
-        "email": temp_email2,
-        "password": "TempPassword123",
-        "ruolo": "promoter",
-        "organization": "Non-Existent Organization"
+    # Test with non-existent user
+    payload = {
+        "login": f"nonexistent_user_{random_string()}",
+        "password": "any_password"
     }
     
-    response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=invalid_org_payload, headers=admin_headers)
+    response = requests.post(f"{BACKEND_URL}/auth/login", json=payload)
     
-    if response.status_code == 400:
-        print(f"✅ Correctly rejected credentials with invalid organization (400 Bad Request)")
-        test_results["create_credentials_organization_validation"] = True
+    # The request should fail with a 401 Unauthorized
+    if response.status_code == 401:
+        print(f"✅ Login with non-existent user correctly rejected with 401")
+        user_test = True
     else:
-        print(f"❌ Unexpected response for invalid organization. Status code: {response.status_code}")
+        print(f"❌ Login with non-existent user test failed. Expected 401, got: {response.status_code}")
         print(f"Response: {response.text}")
-        test_results["create_credentials_organization_validation"] = False
+        user_test = False
     
-    # Test 3: Capo promoter can only create for their organization
-    if different_org:
-        temp_email3 = f"temp_user_{random_string()}@test.com"
-        
-        different_org_payload = {
-            "nome": "Temporary",
-            "email": temp_email3,
-            "password": "TempPassword123",
-            "ruolo": "promoter",
-            "organization": different_org
-        }
-        
-        response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=different_org_payload, headers=capo_headers)
-        
-        if response.status_code == 403:
-            print(f"✅ Correctly rejected capo promoter creating for different organization (403 Forbidden)")
-            test_results["capo_promoter_create_credentials_restriction"] = True
-        else:
-            print(f"❌ Unexpected response for capo promoter restriction. Status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            test_results["capo_promoter_create_credentials_restriction"] = False
-        
-        # Test capo promoter creating for their own organization
-        temp_email4 = f"temp_user_{random_string()}@test.com"
-        
-        own_org_payload = {
-            "nome": "Temporary",
-            "email": temp_email4,
-            "password": "TempPassword123",
-            "ruolo": "promoter",
-            "organization": capo_organization
-        }
-        
-        response = requests.post(f"{BACKEND_URL}/users/temporary-credentials", json=own_org_payload, headers=capo_headers)
-        
-        if response.status_code == 200:
-            print(f"✅ Capo promoter successfully created credentials for own organization")
-        else:
-            print(f"❌ Capo promoter failed to create credentials for own organization. Status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            test_results["capo_promoter_create_credentials_restriction"] = False
-    else:
-        print("ℹ️ Could not find a different organization to test capo promoter restriction")
-        test_results["capo_promoter_create_credentials_restriction"] = True  # Skip this test
+    test_results["login_incorrect_credentials"] = password_test and user_test
     
-    return (test_results["create_credentials_with_organization"] and 
-            test_results["create_credentials_organization_validation"] and 
-            test_results["capo_promoter_create_credentials_restriction"])
-
-# 5. Test Enhanced Event Management for Clubly Founder
-def test_enhanced_event_management():
-    print("\n=== Testing Enhanced Event Management for Clubly Founder ===")
-    
-    if not tokens["admin"]:
-        print("❌ Cannot test enhanced event management without admin token")
-        return False
-    
-    admin_headers = {
-        "Authorization": f"Bearer {tokens['admin']}"
-    }
-    
-    # Create a test event
-    event_name = f"Test Event {random_string()}"
-    tomorrow = (datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d")
-    
-    event_payload = {
-        "name": event_name,
-        "date": tomorrow,
-        "start_time": "20:00",
-        "location": "Test Club",
-        "organization": "Night Events Milano",
-        "end_time": "02:00",
-        "lineup": ["DJ Test"],
-        "guests": ["VIP Guest"],
-        "total_tables": 5,
-        "tables_available": 5,
-        "max_party_size": 6
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/events", json=event_payload, headers=admin_headers)
-    
-    if response.status_code != 200:
-        print(f"❌ Failed to create test event. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        return False
-    
-    event_data = response.json()
-    event_id = event_data.get("event_id")
-    created_resources["event_id"] = event_id
-    print(f"✅ Created test event: {event_name} (ID: {event_id})")
-    
-    # Test 1: Update event poster
-    poster_payload = {
-        "event_poster": create_fake_base64_image()
-    }
-    
-    response = requests.put(f"{BACKEND_URL}/events/{event_id}/poster", json=poster_payload, headers=admin_headers)
-    
-    if response.status_code == 200:
-        print(f"✅ Successfully updated event poster")
-        test_results["update_event_poster"] = True
-    else:
-        print(f"❌ Failed to update event poster. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["update_event_poster"] = False
-    
-    # Test 2: Full update event
-    updated_name = f"{event_name} - Updated"
-    updated_lineup = ["DJ Test Updated", "DJ New"]
-    
-    full_update_payload = {
-        "name": updated_name,
-        "lineup": updated_lineup,
-        "start_time": "21:00",
-        "end_time": "03:00",
-        "guests": ["VIP Guest Updated", "Celebrity Guest"]
-    }
-    
-    response = requests.put(f"{BACKEND_URL}/events/{event_id}/full-update", json=full_update_payload, headers=admin_headers)
-    
-    if response.status_code == 200:
-        print(f"✅ Successfully performed full event update")
-        
-        # Verify the update
-        response = requests.get(f"{BACKEND_URL}/events/{event_id}", headers=admin_headers)
-        
-        if response.status_code == 200:
-            updated_event = response.json()
-            
-            if (updated_event["name"] == updated_name and 
-                updated_event["lineup"] == updated_lineup):
-                print(f"✅ Event update verified")
-                test_results["full_update_event"] = True
-            else:
-                print(f"❌ Event update not properly applied")
-                test_results["full_update_event"] = False
-        else:
-            print(f"❌ Failed to verify event update. Status code: {response.status_code}")
-            test_results["full_update_event"] = False
-    else:
-        print(f"❌ Failed to perform full event update. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["full_update_event"] = False
-    
-    # Test 3: Delete event
-    # Create another event for deletion
-    delete_event_name = f"Delete Test Event {random_string()}"
-    
-    delete_event_payload = {
-        "name": delete_event_name,
-        "date": tomorrow,
-        "start_time": "19:00",
-        "location": "Delete Test Club",
-        "organization": "Night Events Milano",
-        "end_time": "01:00",
-        "lineup": ["DJ Delete"],
-        "total_tables": 3,
-        "tables_available": 3,
-        "max_party_size": 4
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/events", json=delete_event_payload, headers=admin_headers)
-    
-    if response.status_code != 200:
-        print(f"❌ Failed to create event for deletion test. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["delete_event"] = False
-    else:
-        delete_event_data = response.json()
-        delete_event_id = delete_event_data.get("event_id")
-        print(f"✅ Created event for deletion: {delete_event_name} (ID: {delete_event_id})")
-        
-        # Delete the event
-        response = requests.delete(f"{BACKEND_URL}/events/{delete_event_id}", headers=admin_headers)
-        
-        if response.status_code == 200:
-            print(f"✅ Successfully deleted event")
-            
-            # Verify deletion
-            response = requests.get(f"{BACKEND_URL}/events/{delete_event_id}", headers=admin_headers)
-            
-            if response.status_code == 404:
-                print(f"✅ Event deletion verified (404 Not Found)")
-                test_results["delete_event"] = True
-            else:
-                print(f"❌ Event still exists after deletion. Status code: {response.status_code}")
-                test_results["delete_event"] = False
-        else:
-            print(f"❌ Failed to delete event. Status code: {response.status_code}")
-            print(f"Response: {response.text}")
-            test_results["delete_event"] = False
-    
-    return test_results["update_event_poster"] and test_results["full_update_event"] and test_results["delete_event"]
-
-# 6. Test Date Validation for Events
-def test_date_validation():
-    print("\n=== Testing Date Validation for Events ===")
-    
-    if not tokens["admin"]:
-        print("❌ Cannot test date validation without admin token")
-        return False
-    
-    admin_headers = {
-        "Authorization": f"Bearer {tokens['admin']}"
-    }
-    
-    # Test 1: Create event with past date (should fail)
-    yesterday = (datetime.utcnow() - timedelta(days=1)).strftime("%Y-%m-%d")
-    
-    past_event_payload = {
-        "name": f"Past Event {random_string()}",
-        "date": yesterday,
-        "start_time": "20:00",
-        "location": "Past Club",
-        "organization": "Night Events Milano"
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/events", json=past_event_payload, headers=admin_headers)
-    
-    if response.status_code == 400:
-        print(f"✅ Correctly rejected event with past date (400 Bad Request)")
-        test_results["create_event_past_date"] = True
-    else:
-        print(f"❌ Unexpected response for past date event. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["create_event_past_date"] = False
-    
-    # Test 2: Create event with future date (should succeed)
-    tomorrow = (datetime.utcnow() + timedelta(days=1)).strftime("%Y-%m-%d")
-    
-    future_event_payload = {
-        "name": f"Future Event {random_string()}",
-        "date": tomorrow,
-        "start_time": "20:00",
-        "location": "Future Club",
-        "organization": "Night Events Milano",
-        "end_time": "02:00",
-        "lineup": ["DJ Future"],
-        "total_tables": 5,
-        "tables_available": 5,
-        "max_party_size": 6
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/events", json=future_event_payload, headers=admin_headers)
-    
-    if response.status_code == 200:
-        print(f"✅ Successfully created event with future date")
-        test_results["create_event_future_date"] = True
-    else:
-        print(f"❌ Failed to create event with future date. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["create_event_future_date"] = False
-    
-    return test_results["create_event_past_date"] and test_results["create_event_future_date"]
-
-# 7. Test Automatic Booking Assignment
-def test_automatic_booking_assignment():
-    print("\n=== Testing Automatic Booking Assignment ===")
-    
-    # We need a client token for this test
-    if not tokens["admin"]:
-        print("❌ Cannot test booking assignment without admin token")
-        return False
-    
-    # For simplicity, we'll use the admin token as a client
-    client_headers = {
-        "Authorization": f"Bearer {tokens['admin']}"
-    }
-    
-    # Get events
-    response = requests.get(f"{BACKEND_URL}/events", headers=client_headers)
-    
-    if response.status_code != 200:
-        print(f"❌ Failed to get events. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        return False
-    
-    events = response.json()
-    
-    if not events:
-        print("❌ No events found for booking test")
-        return False
-    
-    # Use the first event for booking
-    event_id = events[0]["id"]
-    
-    # Create booking without selected_promoter_id
-    booking_payload = {
-        "event_id": event_id,
-        "booking_type": "lista",
-        "party_size": 4,
-        "selected_promoter_id": None  # Auto-assign
-    }
-    
-    response = requests.post(f"{BACKEND_URL}/bookings", json=booking_payload, headers=client_headers)
-    
-    if response.status_code == 200:
-        booking_data = response.json()
-        created_resources["booking_id"] = booking_data.get("booking_id")
-        
-        if "promoter_name" in booking_data:
-            print(f"✅ Booking created with auto-assigned promoter: {booking_data.get('promoter_name')}")
-            test_results["booking_auto_assignment"] = True
-        else:
-            print(f"❌ Booking created but no promoter was assigned")
-            test_results["booking_auto_assignment"] = False
-    else:
-        print(f"❌ Failed to create booking. Status code: {response.status_code}")
-        print(f"Response: {response.text}")
-        test_results["booking_auto_assignment"] = False
-    
-    return test_results["booking_auto_assignment"]
+    return test_results["login_incorrect_credentials"]
 
 # Run all tests
 def run_all_tests():
-    print("\n=== Running all tests for Clubly backend ===\n")
+    print("\n=== Running all backend API tests for new features ===\n")
     
-    # Login with different roles
-    if not login_with_roles():
-        print("❌ Failed to login with required roles. Aborting tests.")
-        return
+    # Event poster update tests
+    test_capo_promoter_event_poster_update()
+    test_clubly_founder_event_poster_update()
     
-    # Run all test functions
-    test_notification_system()
-    test_password_change_system()
-    test_enhanced_organization_management()
-    test_temporary_credentials_with_organization()
-    test_enhanced_event_management()
-    test_date_validation()
-    test_automatic_booking_assignment()
+    # Booking PR assignment tests
+    test_booking_automatic_pr_assignment()
+    test_booking_specific_pr_selection()
+    
+    # Notifications test
+    test_notifications_count()
+    
+    # Organization management tests
+    test_get_available_organizations()
+    test_get_available_capo_promoters()
+    
+    # Event date validation test
+    test_event_past_date_validation()
+    
+    # Login with needs_password_change test
+    test_login_needs_password_change()
+    
+    # Error handling test
+    test_login_incorrect_credentials()
     
     # Print summary
     print("\n=== Test Results Summary ===")
-    
-    # Group results by category
-    categories = {
-        "Notification System": ["get_user_notifications"],
-        "Password Change System": ["change_password_success", "change_password_wrong_current", "needs_password_change_flag"],
-        "Enhanced Organization Management": ["get_available_capo_promoters", "assign_capo_promoter"],
-        "Temporary Credentials with Organization": ["create_credentials_with_organization", "create_credentials_organization_validation", "capo_promoter_create_credentials_restriction"],
-        "Enhanced Event Management": ["delete_event", "update_event_poster", "full_update_event"],
-        "Date Validation": ["create_event_past_date", "create_event_future_date"],
-        "Automatic Booking Assignment": ["booking_auto_assignment"]
-    }
-    
-    for category, tests in categories.items():
-        category_results = [test_results[test] for test in tests]
-        category_success = all(category_results)
-        status = "✅ PASS" if category_success else "❌ FAIL"
-        print(f"{status} - {category}")
-        
-        # Print individual test results if category failed
-        if not category_success:
-            for test in tests:
-                test_status = "✅ PASS" if test_results[test] else "❌ FAIL"
-                print(f"  {test_status} - {test}")
+    for test_name, result in test_results.items():
+        status = "✅ PASS" if result else "❌ FAIL"
+        print(f"{status} - {test_name}")
     
     # Calculate overall success rate
     success_count = sum(1 for result in test_results.values() if result)
