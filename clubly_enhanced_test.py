@@ -9,7 +9,7 @@ import jwt
 from datetime import datetime, timedelta
 
 # Get the backend URL from the frontend .env file
-BACKEND_URL = "https://87b7f660-8098-4ebb-abea-271b7be8b6f7.preview.emergentagent.com/api"
+BACKEND_URL = "https://8ddadc21-e620-48aa-a5c2-33d9784e126a.preview.emergentagent.com/api"
 
 # Test results
 test_results = {
