@@ -333,6 +333,18 @@ backend:
         comment: "Test completato con successo. Verificato che vengono restituiti messaggi di errore appropriati per credenziali non corrette (401 Unauthorized). Testato sia con password errata che con utente inesistente."
 
 frontend:
+  - task: "Header Authentication Buttons"
+    implemented: true
+    working: true
+    file: "Header.js, App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Test completato con successo. L'header mostra correttamente i pulsanti 'Accedi' e 'Registrati' quando l'utente non è autenticato. Cliccando su 'Accedi' si apre il modal di login con i campi corretti. Cliccando su 'Registrati' si apre il modal di registrazione con tutti i campi necessari. Entrambi i modal si chiudono correttamente cliccando sul pulsante X."
+        
   - task: "User Profile Viewing Modal"
     implemented: true
     working: true
