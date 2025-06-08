@@ -1118,6 +1118,46 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
                   </button>
                 </div>
               </div>
+
+              {/* EVENT POSTER UPLOAD */}
+              <div>
+                <label className="text-orange-400 font-bold block mb-2">🖼️ Locandina Evento</label>
+                
+                {/* Current Poster Preview */}
+                {eventData.event_poster && (
+                  <div className="mb-4">
+                    <h4 className="text-sm text-gray-400 mb-2">Locandina attuale:</h4>
+                    <div className="relative">
+                      <img 
+                        src={eventData.event_poster} 
+                        alt="Locandina evento"
+                        className="w-full max-w-sm h-64 object-cover rounded-lg border-2 border-orange-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setEventData({...eventData, event_poster: null})}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                        title="Rimuovi locandina"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Upload New Poster */}
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-orange-600 file:text-white hover:file:bg-orange-700 file:cursor-pointer"
+                  />
+                  <p className="text-gray-400 text-xs">
+                    📎 Carica una nuova locandina (formati supportati: JPG, PNG, GIF)
+                  </p>
+                </div>
+              </div>
             </div>
             
             <div className="flex space-x-4 pt-4">
