@@ -1901,8 +1901,9 @@ function App() {
                           }
                         }}
                         placeholder="Scrivi un messaggio... (Premi Enter per inviare)"
-                        className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all resize-none"
+                        className="chat-textarea flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none resize-none"
                         rows="2"
+                        style={{ direction: 'ltr', textAlign: 'left' }}
                       />
                       <button 
                         onClick={sendMessage}
