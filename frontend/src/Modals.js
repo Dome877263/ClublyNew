@@ -965,7 +965,7 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
           <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-4 mb-6">
             <h4 className="text-yellow-400 font-bold text-sm mb-2">⚠️ Permessi di Modifica</h4>
             <p className="text-yellow-300 text-xs">
-              Come Capo Promoter puoi modificare: <strong>Nome evento, Orario di inizio, Orario di fine, Line-up DJ e Guest</strong>
+              Come Capo Promoter puoi modificare: <strong>Nome evento, Orario di inizio, Orario di fine, Line-up DJ, Guest e Locandina evento</strong>
             </p>
           </div>
           
