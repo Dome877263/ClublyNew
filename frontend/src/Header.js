@@ -1,8 +1,7 @@
 import React from 'react';
 
 // Header Component with User Profile and Notifications
-const Header = ({ currentUser, currentView, setCurrentView, onLogout, onOpenProfile, notificationsCount = 0 }) => {
-  if (!currentUser) return null;
+const Header = ({ currentUser, currentView, setCurrentView, onLogout, onOpenProfile, notificationsCount = 0, onShowAuth }) => {
 
   const getRoleIcon = (role) => {
     switch(role) {
