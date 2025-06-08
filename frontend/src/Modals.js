@@ -717,18 +717,18 @@ export const CreateCapoPromoterModal = ({ show, onClose, onSubmit, organizations
             />
             
             <div>
-              <label className="text-green-400 font-bold block mb-2">🏢 Organizzazione</label>
+              <label className="text-green-400 font-bold block mb-2">🏢 Organizzazione (Opzionale)</label>
               <select
                 value={userData.organization}
                 onChange={(e) => setUserData({...userData, organization: e.target.value})}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all"
               >
-                <option value="">Seleziona organizzazione...</option>
+                <option value="">Nessuna organizzazione (assegna successivamente)</option>
                 {organizations.map(org => (
                   <option key={org.id} value={org.name}>{org.name} - {org.location}</option>
                 ))}
               </select>
-              <p className="text-gray-400 text-xs mt-1">Opzionale: puoi assegnarla successivamente</p>
+              <p className="text-gray-400 text-xs mt-1">💡 Puoi creare prima il capo promoter e assegnare l'organizzazione in seguito</p>
             </div>
             
             <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-3">
