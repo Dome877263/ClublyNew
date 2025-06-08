@@ -388,7 +388,7 @@ function App() {
     }
   };
 
-  const sendMessage = async () => {
+  const sendMessage = useCallback(async () => {
     if (!newMessage.trim() || !selectedChat) return;
     
     try {
@@ -410,6 +410,13 @@ function App() {
         setNewMessage('');
         fetchChatMessages(selectedChat.id); // Refresh messages
         fetchNotifications(); // Update notifications
+        
+        // Maintain focus on textarea after sending message
+        setTimeout(() => {
+          if (chatTextareaRef.current) {
+            chatTextareaRef.current.focus();
+          }
+        }, 100);
       } else {
         console.error('Failed to send message');
         alert('Errore nell\'invio del messaggio');
@@ -418,7 +425,7 @@ function App() {
       console.error('Error sending message:', error);
       alert('Errore nell\'invio del messaggio');
     }
-  };
+  }, [newMessage, selectedChat, currentUser, backendUrl]);
 
   // Enhanced functions for new features
   const viewUserProfile = async (userId) => {
