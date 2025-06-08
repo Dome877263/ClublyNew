@@ -52,8 +52,8 @@ const Header = ({ currentUser, currentView, setCurrentView, onLogout, onOpenProf
             🎪 CLUBLY
           </button>
           
-          {/* Navigation */}
-          {currentUser.ruolo !== 'cliente' && (
+          {/* Navigation - Only for authenticated users */}
+          {currentUser && currentUser.ruolo !== 'cliente' && (
             <div className="hidden md:flex items-center space-x-2">
               <button
                 onClick={() => setCurrentView('main')}
@@ -75,74 +75,95 @@ const Header = ({ currentUser, currentView, setCurrentView, onLogout, onOpenProf
           )}
         </div>
 
-        {/* Right side - User Profile */}
-        <div className="flex items-center space-x-4">
-          {/* Chat Button with Notifications Badge */}
-          <button
-            onClick={() => setCurrentView('main')} // This will be handled by chat modal in main app
-            className="relative bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center space-x-2"
-          >
-            <span>💬</span>
-            <span className="hidden md:inline">Chat</span>
-            {/* Notifications Badge */}
-            {notificationsCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-gray-900 animate-pulse">
-                {notificationsCount > 99 ? '99+' : notificationsCount}
-              </span>
-            )}
-          </button>
+        {/* Right side - User Profile or Auth Buttons */}
+        {currentUser ? (
+          // Authenticated user section
+          <div className="flex items-center space-x-4">
+            {/* Chat Button with Notifications Badge */}
+            <button
+              onClick={() => setCurrentView('main')} // This will be handled by chat modal in main app
+              className="relative bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center space-x-2"
+            >
+              <span>💬</span>
+              <span className="hidden md:inline">Chat</span>
+              {/* Notifications Badge */}
+              {notificationsCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center border-2 border-gray-900 animate-pulse">
+                  {notificationsCount > 99 ? '99+' : notificationsCount}
+                </span>
+              )}
+            </button>
 
-          {/* User Profile Section - Clickable */}
-          <div 
-            onClick={onOpenProfile}
-            className="flex items-center space-x-3 bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-2 cursor-pointer transition-colors border border-gray-700 hover:border-red-500"
-          >
-            {/* Profile Image */}
-            {currentUser.profile_image ? (
-              <img 
-                src={currentUser.profile_image} 
-                alt={`${currentUser.nome} ${currentUser.cognome}`}
-                className="w-10 h-10 rounded-full object-cover border-2 border-red-500"
-              />
-            ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center border-2 border-red-500">
-                <span className="text-white font-bold text-lg">
-                  {currentUser.nome?.charAt(0)?.toUpperCase() || '?'}
-                </span>
+            {/* User Profile Section - Clickable */}
+            <div 
+              onClick={onOpenProfile}
+              className="flex items-center space-x-3 bg-gray-800 hover:bg-gray-700 rounded-lg px-3 py-2 cursor-pointer transition-colors border border-gray-700 hover:border-red-500"
+            >
+              {/* Profile Image */}
+              {currentUser.profile_image ? (
+                <img 
+                  src={currentUser.profile_image} 
+                  alt={`${currentUser.nome} ${currentUser.cognome}`}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-red-500"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-red-600 to-red-700 rounded-full flex items-center justify-center border-2 border-red-500">
+                  <span className="text-white font-bold text-lg">
+                    {currentUser.nome?.charAt(0)?.toUpperCase() || '?'}
+                  </span>
+                </div>
+              )}
+              
+              {/* User Info */}
+              <div className="hidden md:block">
+                <div className="flex items-center space-x-2">
+                  <span className="text-white font-bold">
+                    {currentUser.nome} {currentUser.cognome}
+                  </span>
+                  <span className="text-lg">{getRoleIcon(currentUser.ruolo)}</span>
+                </div>
+                <p className="text-gray-400 text-sm">
+                  @{currentUser.username} • {getRoleName(currentUser.ruolo)}
+                </p>
               </div>
-            )}
-            
-            {/* User Info */}
-            <div className="hidden md:block">
-              <div className="flex items-center space-x-2">
-                <span className="text-white font-bold">
-                  {currentUser.nome} {currentUser.cognome}
-                </span>
-                <span className="text-lg">{getRoleIcon(currentUser.ruolo)}</span>
+
+              {/* Click indicator */}
+              <div className="text-gray-400 hover:text-red-400 transition-colors">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-              <p className="text-gray-400 text-sm">
-                @{currentUser.username} • {getRoleName(currentUser.ruolo)}
-              </p>
             </div>
 
-            {/* Click indicator */}
-            <div className="text-gray-400 hover:text-red-400 transition-colors">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
+            {/* Logout Button */}
+            <button
+              onClick={onLogout}
+              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center space-x-2"
+              title="Logout"
+            >
+              <span>🚪</span>
+              <span className="hidden lg:inline">Esci</span>
+            </button>
           </div>
-
-          {/* Logout Button */}
-          <button
-            onClick={onLogout}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center space-x-2"
-            title="Logout"
-          >
-            <span>🚪</span>
-            <span className="hidden lg:inline">Esci</span>
-          </button>
-        </div>
+        ) : (
+          // Guest user section - Login/Register buttons
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={() => onShowAuth('login')}
+              className="bg-transparent border border-red-600 text-red-400 hover:bg-red-600 hover:text-white px-4 py-2 rounded-lg font-bold transition-all duration-300 flex items-center space-x-2"
+            >
+              <span>🔐</span>
+              <span>Accedi</span>
+            </button>
+            <button
+              onClick={() => onShowAuth('register')}
+              className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg flex items-center space-x-2"
+            >
+              <span>✨</span>
+              <span>Registrati</span>
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
