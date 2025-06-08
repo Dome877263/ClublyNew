@@ -1727,199 +1727,212 @@ function App() {
   );
 
   // ENHANCED CHAT MODAL 
-  const ChatModal = () => (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 border border-green-600 rounded-xl max-w-4xl w-full h-[80vh] shadow-2xl">
-        <div className="flex h-full">
-          {/* Chat List */}
-          <div className="w-1/3 border-r border-gray-700 p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white text-xl font-bold">💬 Chat</h3>
-              <button 
-                onClick={() => setShowChat(false)}
-                className="text-gray-400 hover:text-green-400 text-xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-2 h-full overflow-y-auto">
-              {chats.map(chat => (
-                <div 
-                  key={chat.id}
-                  onClick={() => openChat(chat)}
-                  className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
-                    selectedChat?.id === chat.id ? 
-                    'bg-green-700 border border-green-500' : 
-                    'bg-gray-800 hover:bg-gray-700 border border-transparent'
-                  }`}
+  // Optimized ChatModal with better focus management
+  const ChatModal = () => {
+    // Auto-focus textarea when chat is selected
+    useEffect(() => {
+      if (selectedChat && chatTextareaRef.current) {
+        setTimeout(() => {
+          chatTextareaRef.current.focus();
+        }, 100);
+      }
+    }, [selectedChat]);
+
+    return (
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-gray-900 border border-green-600 rounded-xl max-w-4xl w-full h-[80vh] shadow-2xl">
+          <div className="flex h-full">
+            {/* Chat List */}
+            <div className="w-1/3 border-r border-gray-700 p-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-white text-xl font-bold">💬 Chat</h3>
+                <button 
+                  onClick={() => setShowChat(false)}
+                  className="text-gray-400 hover:text-green-400 text-xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
                 >
-                  <div className="flex items-center space-x-3">
-                    {/* Profile Image */}
-                    {chat.other_participant?.profile_image ? (
-                      <img 
-                        src={chat.other_participant.profile_image} 
-                        alt={chat.other_participant.nome}
-                        className="w-10 h-10 rounded-full object-cover border-2 border-green-500"
-                      />
-                    ) : (
-                      <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center border-2 border-green-500">
-                        <span className="text-white font-bold text-sm">
-                          {chat.other_participant?.nome?.charAt(0)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold truncate">
-                        {chat.other_participant?.nome} {chat.other_participant?.cognome}
-                      </p>
-                      <p className="text-gray-400 text-xs">
-                        {chat.participant_role === 'promoter' ? '🎪' : '🎉'} 
-                        @{chat.other_participant?.username}
-                      </p>
-                      <p className="text-gray-300 text-sm font-medium">
-                        🎉 {chat.event?.name}
-                      </p>
-                      {chat.last_message && (
-                        <p className="text-gray-400 text-xs truncate mt-1">
-                          {chat.last_message.message.substring(0, 30)}...
-                        </p>
+                  ✕
+                </button>
+              </div>
+              
+              <div className="space-y-2 h-full overflow-y-auto">
+                {chats.map(chat => (
+                  <div 
+                    key={chat.id}
+                    onClick={() => openChat(chat)}
+                    className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                      selectedChat?.id === chat.id ? 
+                      'bg-green-700 border border-green-500' : 
+                      'bg-gray-800 hover:bg-gray-700 border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3">
+                      {/* Profile Image */}
+                      {chat.other_participant?.profile_image ? (
+                        <img 
+                          src={chat.other_participant.profile_image} 
+                          alt={chat.other_participant.nome}
+                          className="w-10 h-10 rounded-full object-cover border-2 border-green-500"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center border-2 border-green-500">
+                          <span className="text-white font-bold text-sm">
+                            {chat.other_participant?.nome?.charAt(0)}
+                          </span>
+                        </div>
                       )}
+                      
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold truncate">
+                          {chat.other_participant?.nome} {chat.other_participant?.cognome}
+                        </p>
+                        <p className="text-gray-400 text-xs">
+                          {chat.participant_role === 'promoter' ? '🎪' : '🎉'} 
+                          @{chat.other_participant?.username}
+                        </p>
+                        <p className="text-gray-300 text-sm font-medium">
+                          🎉 {chat.event?.name}
+                        </p>
+                        {chat.last_message && (
+                          <p className="text-gray-400 text-xs truncate mt-1">
+                            {chat.last_message.message.substring(0, 30)}...
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-              
-              {chats.length === 0 && (
-                <div className="text-center text-gray-400 py-8">
-                  <p>Nessuna chat attiva</p>
-                  <p className="text-xs mt-2">Prenota un evento per iniziare una chat!</p>
+                ))}
+                
+                {chats.length === 0 && (
+                  <div className="text-center text-gray-400 py-8">
+                    <p>Nessuna chat attiva</p>
+                    <p className="text-xs mt-2">Prenota un evento per iniziare una chat!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 flex flex-col">
+              {selectedChat ? (
+                <>
+                  {/* Chat Header */}
+                  <div className="border-b border-gray-700 p-4 bg-gray-800">
+                    <div className="flex items-center space-x-3">
+                      {selectedChat.other_participant?.profile_image ? (
+                        <img 
+                          src={selectedChat.other_participant.profile_image} 
+                          alt={selectedChat.other_participant.nome}
+                          className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
+                        />
+                      ) : (
+                        <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center border-2 border-green-500">
+                          <span className="text-white font-bold">
+                            {selectedChat.other_participant?.nome?.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="text-white font-bold text-lg">
+                          {selectedChat.other_participant?.nome} {selectedChat.other_participant?.cognome}
+                        </h4>
+                        <p className="text-gray-400 text-sm">
+                          {selectedChat.participant_role === 'promoter' ? '🎪 Promoter' : '🎉 Cliente'} • 
+                          @{selectedChat.other_participant?.username}
+                        </p>
+                        <p className="text-green-400 text-sm font-medium">
+                          📅 {selectedChat.event?.name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Messages */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-800/30">
+                    {isLoadingChatMessages ? (
+                      <div className="text-center text-gray-400 py-8">
+                        <p>Caricamento messaggi...</p>
+                      </div>
+                    ) : (
+                      chatMessages.map(message => (
+                        <div 
+                          key={message.id} 
+                          className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-lg ${
+                            message.sender_id === currentUser?.id ? 
+                            'bg-green-600 text-white' : 
+                            'bg-gray-700 text-gray-100'
+                          }`}>
+                            {message.sender_id !== currentUser?.id && (
+                              <p 
+                                className="text-green-400 text-xs font-semibold mb-1 cursor-pointer hover:text-green-300 transition-colors"
+                                onClick={() => handleUsernameClick(message.sender_id)}
+                              >
+                                {selectedChat.other_participant?.nome} {selectedChat.other_participant?.cognome}
+                              </p>
+                            )}
+                            <p className="text-sm leading-relaxed break-words">
+                              {message.message}
+                            </p>
+                            <p className={`text-xs mt-2 ${
+                              message.sender_id === currentUser?.id ? 'text-green-200' : 'text-gray-400'
+                            }`}>
+                              {new Date(message.timestamp).toLocaleTimeString('it-IT', { 
+                                hour: '2-digit', minute: '2-digit' 
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* Message Input */}
+                  <div className="border-t border-gray-700 p-4 bg-gray-800">
+                    <div className="flex space-x-3">
+                      <textarea
+                        ref={chatTextareaRef}
+                        value={newMessage}
+                        onChange={(e) => setNewMessage(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendMessage();
+                          }
+                        }}
+                        placeholder="Scrivi un messaggio... (Premi Enter per inviare)"
+                        className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all resize-none"
+                        rows="2"
+                      />
+                      <button 
+                        onClick={sendMessage}
+                        disabled={!newMessage.trim()}
+                        className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-bold transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
+                      >
+                        <span>📤</span>
+                        <span>Invia</span>
+                      </button>
+                    </div>
+                    <p className="text-gray-400 text-xs mt-2">
+                      💡 Puoi usare Shift+Enter per andare a capo
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center bg-gray-800/30">
+                  <div className="text-center text-gray-400">
+                    <div className="text-6xl mb-4">💬</div>
+                    <p className="text-xl font-semibold">Seleziona una chat</p>
+                    <p className="text-sm mt-2">Scegli una conversazione dalla lista per iniziare a chattare</p>
+                  </div>
                 </div>
               )}
             </div>
           </div>
-
-          {/* Chat Messages */}
-          <div className="flex-1 flex flex-col">
-            {selectedChat ? (
-              <>
-                {/* Chat Header */}
-                <div className="border-b border-gray-700 p-4 bg-gray-800">
-                  <div className="flex items-center space-x-3">
-                    {selectedChat.other_participant?.profile_image ? (
-                      <img 
-                        src={selectedChat.other_participant.profile_image} 
-                        alt={selectedChat.other_participant.nome}
-                        className="w-12 h-12 rounded-full object-cover border-2 border-green-500"
-                      />
-                    ) : (
-                      <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center border-2 border-green-500">
-                        <span className="text-white font-bold">
-                          {selectedChat.other_participant?.nome?.charAt(0)}
-                        </span>
-                      </div>
-                    )}
-                    <div>
-                      <h4 className="text-white font-bold text-lg">
-                        {selectedChat.other_participant?.nome} {selectedChat.other_participant?.cognome}
-                      </h4>
-                      <p className="text-gray-400 text-sm">
-                        {selectedChat.participant_role === 'promoter' ? '🎪 Promoter' : '🎉 Cliente'} • 
-                        @{selectedChat.other_participant?.username}
-                      </p>
-                      <p className="text-green-400 text-sm font-medium">
-                        📅 {selectedChat.event?.name}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-800/30">
-                  {isLoadingChatMessages ? (
-                    <div className="text-center text-gray-400 py-8">
-                      <p>Caricamento messaggi...</p>
-                    </div>
-                  ) : (
-                    chatMessages.map(message => (
-                      <div 
-                        key={message.id} 
-                        className={`flex ${message.sender_id === currentUser?.id ? 'justify-end' : 'justify-start'}`}
-                      >
-                        <div className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl shadow-lg ${
-                          message.sender_id === currentUser?.id ? 
-                          'bg-green-600 text-white' : 
-                          'bg-gray-700 text-gray-100'
-                        }`}>
-                          {message.sender_id !== currentUser?.id && (
-                            <p 
-                              className="text-green-400 text-xs font-semibold mb-1 cursor-pointer hover:text-green-300 transition-colors"
-                              onClick={() => handleUsernameClick(message.sender_id)}
-                            >
-                              {selectedChat.other_participant?.nome} {selectedChat.other_participant?.cognome}
-                            </p>
-                          )}
-                          <p className="text-sm leading-relaxed break-words">
-                            {message.message}
-                          </p>
-                          <p className={`text-xs mt-2 ${
-                            message.sender_id === currentUser?.id ? 'text-green-200' : 'text-gray-400'
-                          }`}>
-                            {new Date(message.timestamp).toLocaleTimeString('it-IT', { 
-                              hour: '2-digit', minute: '2-digit' 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-
-                {/* Message Input */}
-                <div className="border-t border-gray-700 p-4 bg-gray-800">
-                  <div className="flex space-x-3">
-                    <textarea
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage();
-                        }
-                      }}
-                      placeholder="Scrivi un messaggio... (Premi Enter per inviare)"
-                      className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none transition-all resize-none"
-                      rows="2"
-                    />
-                    <button 
-                      onClick={sendMessage}
-                      disabled={!newMessage.trim()}
-                      className="bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-6 py-3 rounded-lg font-bold transition-colors disabled:cursor-not-allowed flex items-center space-x-2"
-                    >
-                      <span>📤</span>
-                      <span>Invia</span>
-                    </button>
-                  </div>
-                  <p className="text-gray-400 text-xs mt-2">
-                    💡 Puoi usare Shift+Enter per andare a capo
-                  </p>
-                </div>
-              </>
-            ) : (
-              <div className="flex-1 flex items-center justify-center bg-gray-800/30">
-                <div className="text-center text-gray-400">
-                  <div className="text-6xl mb-4">💬</div>
-                  <p className="text-xl font-semibold">Seleziona una chat</p>
-                  <p className="text-sm mt-2">Scegli una conversazione dalla lista per iniziare a chattare</p>
-                </div>
-              </div>
-            )}
-          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-black">
