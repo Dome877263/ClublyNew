@@ -58,6 +58,9 @@ function App() {
   const [availableCapoPromoters, setAvailableCapoPromoters] = useState([]);
   const [notificationsCount, setNotificationsCount] = useState(0);
   const [authError, setAuthError] = useState('');
+  
+  // Add ref for chat textarea to maintain focus
+  const chatTextareaRef = useRef(null);
 
   const backendUrl = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8001';
 
