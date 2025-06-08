@@ -5,7 +5,7 @@ import string
 from datetime import datetime, timedelta
 
 # Get the backend URL from the frontend .env file
-BACKEND_URL = "https://8ddadc21-e620-48aa-a5c2-33d9784e126a.preview.emergentagent.com/api"
+BACKEND_URL = "https://e8284f37-9eee-4296-9b38-bf14bc6ff4ca.preview.emergentagent.com/api"
 
 # Test results
 test_results = {
