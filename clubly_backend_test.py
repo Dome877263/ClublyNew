@@ -8,7 +8,7 @@ import string
 from datetime import datetime, timedelta
 
 # Backend URL from the review request
-BACKEND_URL = "https://e8284f37-9eee-4296-9b38-bf14bc6ff4ca.preview.emergentagent.com/api"
+BACKEND_URL = "https://cf2530ec-d455-4e05-aef3-ef00e108bc21.preview.emergentagent.com/api"
 
 # Test results
 test_results = {
