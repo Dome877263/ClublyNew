@@ -657,6 +657,7 @@ test_plan:
   current_focus:
     - "Profile Edit API"
     - "Enhanced User Search API"
+    - "Header Authentication Buttons"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
