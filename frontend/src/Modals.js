@@ -1569,6 +1569,374 @@ export const CreateEventModal = ({ show, onClose, onSubmit }) => {
   );
 };
 
+// Create Event Modal
+export const CreateEventModal = ({ show, onClose, onSubmit }) => {
+  const [eventData, setEventData] = useState({
+    name: '',
+    date: '',
+    start_time: '',
+    end_time: '',
+    location: '',
+    location_address: '',
+    organization: '',
+    lineup: [],
+    guests: [],
+    total_tables: 0,
+    max_party_size: 10,
+    event_poster: null
+  });
+  const [newDj, setNewDj] = useState('');
+  const [newGuest, setNewGuest] = useState('');
+
+  // Add DJ to lineup
+  const addDj = () => {
+    if (newDj.trim()) {
+      setEventData({
+        ...eventData,
+        lineup: [...eventData.lineup, newDj.trim()]
+      });
+      setNewDj('');
+    }
+  };
+
+  // Remove DJ from lineup
+  const removeDj = (index) => {
+    const newLineup = eventData.lineup.filter((_, i) => i !== index);
+    setEventData({...eventData, lineup: newLineup});
+  };
+
+  // Add Guest
+  const addGuest = () => {
+    if (newGuest.trim()) {
+      setEventData({
+        ...eventData,
+        guests: [...eventData.guests, newGuest.trim()]
+      });
+      setNewGuest('');
+    }
+  };
+
+  // Remove Guest
+  const removeGuest = (index) => {
+    const newGuests = eventData.guests.filter((_, i) => i !== index);
+    setEventData({...eventData, guests: newGuests});
+  };
+
+  // Handle image upload for event poster
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEventData({...eventData, event_poster: reader.result});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(eventData);
+  };
+
+  // Fix per il problema di chiusura
+  const handleBackdropClick = (e) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
+  if (!show) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+      onClick={handleBackdropClick}
+    >
+      <div className="bg-gray-900 border border-red-600 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-white text-2xl font-bold">🎉 Crea Nuovo Evento</h2>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-gray-400 hover:text-red-400 text-2xl font-bold transition-colors hover:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center"
+              type="button"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <label className="text-red-400 font-bold block mb-2">📝 Nome Evento</label>
+                <input
+                  type="text"
+                  placeholder="Nome dell'evento"
+                  value={eventData.name}
+                  onChange={(e) => setEventData({...eventData, name: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-red-400 font-bold block mb-2">📅 Data Evento</label>
+                  <input
+                    type="date"
+                    value={eventData.date}
+                    onChange={(e) => setEventData({...eventData, date: e.target.value})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-red-400 font-bold block mb-2">⏰ Orario Inizio</label>
+                  <input
+                    type="time"
+                    value={eventData.start_time}
+                    onChange={(e) => setEventData({...eventData, start_time: e.target.value})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-red-400 font-bold block mb-2">📍 Locale</label>
+                <input
+                  type="text"
+                  placeholder="Nome del locale"
+                  value={eventData.location}
+                  onChange={(e) => setEventData({...eventData, location: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-red-400 font-bold block mb-2">🏢 Organizzazione</label>
+                <input
+                  type="text"
+                  placeholder="Nome organizzazione"
+                  value={eventData.organization}
+                  onChange={(e) => setEventData({...eventData, organization: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="text-red-400 font-bold block mb-2">⏰ Orario Fine (Opzionale)</label>
+                <input
+                  type="time"
+                  value={eventData.end_time}
+                  onChange={(e) => setEventData({...eventData, end_time: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-red-400 font-bold block mb-2">🗺️ Indirizzo (Opzionale)</label>
+                <input
+                  type="text"
+                  placeholder="Indirizzo completo del locale"
+                  value={eventData.location_address}
+                  onChange={(e) => setEventData({...eventData, location_address: e.target.value})}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                />
+              </div>
+
+              {/* DJ LINEUP SECTION */}
+              <div>
+                <label className="text-red-400 font-bold block mb-2">🎵 Line-up DJ</label>
+                
+                {/* Current DJ List */}
+                {eventData.lineup.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <h4 className="text-sm text-gray-400">DJ in lineup:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      {eventData.lineup.map((dj, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 border border-red-500/20">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-red-400">🎧</span>
+                            <span className="text-white">{dj}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeDj(index)}
+                            className="text-red-400 hover:text-red-300 text-sm transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Add New DJ */}
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Nome DJ (es. DJ Marco)"
+                    value={newDj}
+                    onChange={(e) => setNewDj(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDj())}
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={addDj}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-bold transition-colors flex items-center space-x-1"
+                  >
+                    <span>➕</span>
+                    <span className="hidden md:inline">Aggiungi</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* GUEST SECTION */}
+              <div>
+                <label className="text-red-400 font-bold block mb-2">⭐ Guest Speciali</label>
+                
+                {/* Current Guest List */}
+                {eventData.guests.length > 0 && (
+                  <div className="mb-4 space-y-2">
+                    <h4 className="text-sm text-gray-400">Guest speciali:</h4>
+                    <div className="grid grid-cols-1 gap-2">
+                      {eventData.guests.map((guest, index) => (
+                        <div key={index} className="flex items-center justify-between bg-gray-800 rounded-lg px-3 py-2 border border-red-500/20">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-red-400">⭐</span>
+                            <span className="text-white">{guest}</span>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeGuest(index)}
+                            className="text-red-400 hover:text-red-300 text-sm transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Add New Guest */}
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="Nome guest speciale"
+                    value={newGuest}
+                    onChange={(e) => setNewGuest(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGuest())}
+                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={addGuest}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg font-bold transition-colors flex items-center space-x-1"
+                  >
+                    <span>➕</span>
+                    <span className="hidden md:inline">Aggiungi</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* TABLE SETTINGS */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-red-400 font-bold block mb-2">🪑 Tavoli Disponibili</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={eventData.total_tables}
+                    onChange={(e) => setEventData({...eventData, total_tables: parseInt(e.target.value) || 0})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-red-400 font-bold block mb-2">👥 Max Persone per Tavolo</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={eventData.max_party_size}
+                    onChange={(e) => setEventData({...eventData, max_party_size: parseInt(e.target.value) || 10})}
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              {/* EVENT POSTER UPLOAD */}
+              <div>
+                <label className="text-red-400 font-bold block mb-2">🖼️ Locandina Evento (Opzionale)</label>
+                
+                {/* Preview */}
+                {eventData.event_poster && (
+                  <div className="mb-4">
+                    <div className="relative">
+                      <img 
+                        src={eventData.event_poster} 
+                        alt="Locandina evento"
+                        className="w-full max-w-sm h-64 object-cover rounded-lg border-2 border-red-500"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setEventData({...eventData, event_poster: null})}
+                        className="absolute top-2 right-2 bg-red-600 hover:bg-red-700 text-white rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                        title="Rimuovi locandina"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Upload */}
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-red-600 file:text-white hover:file:bg-red-700 file:cursor-pointer"
+                  />
+                  <p className="text-gray-400 text-xs">
+                    📎 Carica una locandina per l'evento (formati supportati: JPG, PNG, GIF)
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex space-x-4 pt-4">
+              <button 
+                type="button"
+                onClick={onClose}
+                className="flex-1 bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-bold transition-colors"
+              >
+                Annulla
+              </button>
+              <button 
+                type="submit" 
+                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 rounded-lg font-bold transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
+                🎉 Crea Evento
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Organization Details Modal
 export const OrganizationDetailsModal = ({ show, onClose, organization, onViewProfile }) => {
   // Fix per il problema di chiusura
