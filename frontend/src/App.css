@@ -21,9 +21,17 @@ input[type="radio"] {
   accent-color: #dc2626;
 }
 
-/* Smooth animations */
-* {
+/* Smooth animations - exclude textarea for chat */
+*:not(.chat-textarea) {
   transition: all 0.3s ease;
+}
+
+/* Chat textarea specific styling */
+.chat-textarea {
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+  direction: ltr !important;
+  text-align: left !important;
+  unicode-bidi: normal !important;
 }
 
 /* Custom gradient backgrounds */
