@@ -921,6 +921,18 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
     setEventData({...eventData, guests: newGuests});
   };
 
+  // Handle image upload for event poster
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setEventData({...eventData, event_poster: reader.result});
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(event.id, eventData);
