@@ -1928,6 +1928,10 @@ function App() {
         onLogout={handleLogout}
         onOpenProfile={openOwnProfile}
         notificationsCount={notificationsCount}
+        onShowAuth={(mode) => {
+          setAuthMode(mode);
+          setShowAuth(true);
+        }}
       />
 
       {/* Main Content */}
