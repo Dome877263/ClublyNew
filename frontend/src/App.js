@@ -1661,14 +1661,7 @@ function App() {
               <p className="text-gray-300 text-sm"><span className="text-gray-400">Organizzazione:</span> {selectedEvent?.organization}</p>
             </div>
 
-            {/* AUTOMATIC ASSIGNMENT NOTICE */}
-            <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-4">
-              <h3 className="text-blue-400 font-bold mb-2">🤖 Assegnazione Automatica PR</h3>
-              <p className="text-blue-300 text-sm">
-                Il tuo PR verrà assegnato automaticamente in base alla disponibilità. 
-                Riceverai il promoter con meno prenotazioni per garantire il miglior servizio!
-              </p>
-            </div>
+
 
             {/* Booking Type */}
             <div>
