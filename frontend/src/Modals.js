@@ -866,7 +866,8 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
     lineup: [],
     start_time: '',
     end_time: '',
-    guests: []
+    guests: [],
+    event_poster: null
   });
 
   const [newDj, setNewDj] = useState('');
