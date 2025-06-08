@@ -881,7 +881,8 @@ export const EditEventModal = ({ show, onClose, event, onSubmit }) => {
         lineup: Array.isArray(event.lineup) ? event.lineup : [],
         start_time: event.start_time || '',
         end_time: event.end_time || '',
-        guests: Array.isArray(event.guests) ? event.guests : []
+        guests: Array.isArray(event.guests) ? event.guests : [],
+        event_poster: event.event_poster || null
       });
     }
   }, [event]);
