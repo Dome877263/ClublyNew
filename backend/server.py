@@ -1010,8 +1010,8 @@ async def update_event(event_id: str, event_update: dict, current_user = Depends
         if event["organization"] != user.get("organization"):
             raise HTTPException(status_code=403, detail="Non autorizzato per questo evento")
     
-    # Update allowed fields for capo_promoter: name, lineup, start_time, end_time, guests
-    allowed_fields = ["name", "lineup", "start_time", "end_time", "guests"]
+    # Update allowed fields for capo_promoter: name, lineup, start_time, end_time, guests, event_poster
+    allowed_fields = ["name", "lineup", "start_time", "end_time", "guests", "event_poster"]
     update_data = {k: v for k, v in event_update.items() if k in allowed_fields}
     update_data["updated_at"] = datetime.utcnow()
     update_data["updated_by"] = current_user["id"]
