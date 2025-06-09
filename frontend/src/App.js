@@ -1894,7 +1894,7 @@ function App() {
                     )}
                   </div>
 
-                  {/* Message Input */}
+                  {/* Message Input - ENHANCED with better text direction handling */}
                   <div className="border-t border-gray-700 p-4 bg-gray-800">
                     <div className="flex space-x-3">
                       <textarea
@@ -1907,10 +1907,27 @@ function App() {
                             sendMessage();
                           }
                         }}
+                        onFocus={() => {
+                          // Ensure cursor is at the end when focused
+                          const textarea = chatTextareaRef.current;
+                          if (textarea) {
+                            setTimeout(() => {
+                              textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+                            }, 0);
+                          }
+                        }}
                         placeholder="Scrivi un messaggio... (Premi Enter per inviare)"
                         className="chat-textarea flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 outline-none resize-none"
                         rows="2"
-                        style={{ direction: 'ltr', textAlign: 'left' }}
+                        style={{ 
+                          direction: 'ltr', 
+                          textAlign: 'left',
+                          unicodeBidi: 'normal',
+                          writingMode: 'horizontal-tb'
+                        }}
+                        dir="ltr"
+                        lang="it"
+                        spellCheck="true"
                       />
                       <button 
                         onClick={sendMessage}
