@@ -26,12 +26,21 @@ input[type="radio"] {
   transition: all 0.3s ease;
 }
 
-/* Chat textarea specific styling */
+/* Chat textarea specific styling - ENHANCED for text direction issues */
 .chat-textarea {
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
   direction: ltr !important;
   text-align: left !important;
   unicode-bidi: normal !important;
+  writing-mode: horizontal-tb !important;
+  /* Force text input direction */
+  text-direction: ltr !important;
+  /* Prevent text selection direction issues */
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  user-select: text !important;
+  /* Ensure proper caret behavior */
+  caret-color: white !important;
 }
 
 /* Custom gradient backgrounds */
