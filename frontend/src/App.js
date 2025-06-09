@@ -1734,16 +1734,38 @@ function App() {
   );
 
   // ENHANCED CHAT MODAL 
-  // Optimized ChatModal with better focus management
+  // Optimized ChatModal with better focus management and text direction
   const ChatModal = () => {
-    // Auto-focus textarea when chat is selected
+    // Enhanced auto-focus textarea when chat is selected
     useEffect(() => {
       if (selectedChat && chatTextareaRef.current) {
-        setTimeout(() => {
-          chatTextareaRef.current.focus();
-        }, 100);
+        // Multiple attempts to ensure focus
+        const focusTextarea = () => {
+          const textarea = chatTextareaRef.current;
+          if (textarea) {
+            textarea.focus();
+            // Place cursor at end of text
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+          }
+        };
+        
+        // Immediate focus
+        focusTextarea();
+        
+        // Delayed focus to ensure DOM is ready
+        setTimeout(focusTextarea, 50);
+        setTimeout(focusTextarea, 150);
       }
     }, [selectedChat]);
+
+    // Enhanced auto-focus when modal opens
+    useEffect(() => {
+      if (chatTextareaRef.current) {
+        setTimeout(() => {
+          chatTextareaRef.current.focus();
+        }, 200);
+      }
+    }, []); // Run once when component mounts
 
     return (
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
