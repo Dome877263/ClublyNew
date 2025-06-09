@@ -391,6 +391,9 @@ function App() {
   const sendMessage = useCallback(async () => {
     if (!newMessage.trim() || !selectedChat) return;
     
+    // Preserve textarea reference before sending
+    const textareaElement = chatTextareaRef.current;
+    
     try {
       const response = await fetch(`${backendUrl}/api/chats/${selectedChat.id}/messages`, {
         method: 'POST',
@@ -411,12 +414,16 @@ function App() {
         fetchChatMessages(selectedChat.id); // Refresh messages
         fetchNotifications(); // Update notifications
         
-        // Maintain focus on textarea after sending message
-        setTimeout(() => {
-          if (chatTextareaRef.current) {
-            chatTextareaRef.current.focus();
-          }
-        }, 100);
+        // ENHANCED: Maintain focus immediately and after DOM update
+        if (textareaElement) {
+          textareaElement.focus();
+          // Double ensure focus after state update
+          setTimeout(() => {
+            textareaElement.focus();
+            // Place cursor at end
+            textareaElement.setSelectionRange(textareaElement.value.length, textareaElement.value.length);
+          }, 0);
+        }
       } else {
         console.error('Failed to send message');
         alert('Errore nell\'invio del messaggio');
