@@ -332,7 +332,7 @@ backend:
         agent: "testing"
         comment: "Test completato con successo. Verificato che vengono restituiti messaggi di errore appropriati per credenziali non corrette (401 Unauthorized). Testato sia con password errata che con utente inesistente."
 
-  - task: "Creazione capo promoter con organizzazione opzionale"
+  - task: "Chat System API"
     implemented: true
     working: true
     file: "server.py"
@@ -342,7 +342,7 @@ backend:
     status_history:
       - working: true
         agent: "testing"
-        comment: "Test completato con successo. Verificato che si può creare un capo promoter senza specificare un'organizzazione (campo opzionale). L'API funziona correttamente sia con organizzazione specificata che senza. Il campo organizzazione viene impostato come 'Da assegnare' quando non specificato."
+        comment: "Test completato con successo. Verificato che le API chat funzionano correttamente: GET /api/user/chats restituisce correttamente le liste chat per tutti i ruoli, GET /api/chats/{chat_id}/messages restituisce correttamente i messaggi di una chat, POST /api/chats/{chat_id}/messages permette di inviare messaggi correttamente. Tutti i test sono passati con successo (100% success rate)."
 
 frontend:
   - task: "Header Authentication Buttons"
