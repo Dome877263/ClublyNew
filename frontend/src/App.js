@@ -1937,7 +1937,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Header with notifications badge */}
+      {/* Header with notifications badge and chat function */}
       <Header 
         currentUser={currentUser} 
         currentView={currentView} 
@@ -1945,6 +1945,7 @@ function App() {
         onLogout={handleLogout}
         onOpenProfile={openOwnProfile}
         notificationsCount={notificationsCount}
+        onOpenChat={() => setShowChat(true)} // FIXED: Properly opens chat modal
         onShowAuth={(mode) => {
           setAuthMode(mode);
           setShowAuth(true);
