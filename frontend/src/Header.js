@@ -79,9 +79,9 @@ const Header = ({ currentUser, currentView, setCurrentView, onLogout, onOpenProf
         {currentUser ? (
           // Authenticated user section
           <div className="flex items-center space-x-4">
-            {/* Chat Button with Notifications Badge */}
+            {/* Chat Button with Notifications Badge - FIXED */}
             <button
-              onClick={() => setCurrentView('main')} // This will be handled by chat modal in main app
+              onClick={() => onOpenChat && onOpenChat()} // Correctly opens chat modal
               className="relative bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center space-x-2"
             >
               <span>💬</span>
